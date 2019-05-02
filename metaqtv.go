@@ -55,8 +55,13 @@ type jsonOut struct {
 }
 
 func main() {
-	var port int
+	var (
+		port int
+		updateInterval int
+	)
+
 	flag.IntVar(&port, "port", 3000, "HTTP listen port")
+	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
 	flag.Parse()
 
 	f, err := os.Open("metaqtv.json")
@@ -79,7 +84,7 @@ func main() {
 
 	var jsonOut jsonOut
 
-	ticker := time.NewTicker(time.Minute)
+	ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
 
 	go func() {
 		for ; true; <-ticker.C {
