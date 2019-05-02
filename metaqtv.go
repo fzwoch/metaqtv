@@ -1,3 +1,5 @@
+// Copyright (C) 2019 Florian Zwoch <fzwoch@gmail.com>
+//
 // see https://github.com/eb/metaqtv
 // for jogi - get well soon <3
 
