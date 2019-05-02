@@ -9,6 +9,7 @@ import (
 	"flag"
 	"io/ioutil"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -21,13 +22,26 @@ type qtvServer struct {
 	Port     int    `json:"port"`
 }
 
+type player struct {
+	Name        string `xml:"name"`
+	Team        string `xml:"team" json:"-"`
+	Frags       int    `xml:"frags" json:"-"`
+	Ping        int    `xml:"ping" json:"-"`
+	PL          int    `xml:"pl" json:"-"`
+	TopColor    int    `xml:"topcolor" json:"-"`
+	BottomColor int    `xml:"bottomcolor" json:"-"`
+}
+
 type xmlItem struct {
-	Title         string `xml:"title" json:"title"`
-	Hostname      string `xml:"hostname" json:"hostname"`
-	Port          int    `xml:"port" json:"port"`
-	Status        string `xml:"status" json:"status"`
-	Map           string `xml:"map" json:"map"`
-	ObserverCount int    `xml:"observercount" json:"observercount"`
+	Title         string   `xml:"title" json:"-"`
+	Hostname      string   `xml:"hostname" json:"Hostname"`
+	IPAddress     string   `json:"IpAddress"`
+	Port          int      `xml:"port"`
+	Link          string   `xml:"link"`
+	Status        string   `xml:"status" json:"-"`
+	Map           string   `xml:"map" json:"-"`
+	ObserverCount int      `xml:"observercount" json:"-"`
+	Players       []player `xml:"player"`
 }
 
 type xmlServer struct {
@@ -70,10 +84,22 @@ func main() {
 	go func() {
 		for ; true; <-ticker.C {
 			var (
-				wg         sync.WaitGroup
-				m          sync.Mutex
-				allServers []xmlItem
+				wg sync.WaitGroup
+				m  sync.Mutex
 			)
+
+			allServers := struct {
+				Servers []struct {
+					GameStates []xmlItem
+				}
+				ServerCount   int
+				PlayerCount   int
+				ObserverCount int
+			}{
+				Servers: make([]struct {
+					GameStates []xmlItem
+				}, 1),
+			}
 
 			for _, server := range servers {
 				wg.Add(1)
@@ -105,13 +131,33 @@ func main() {
 						return
 					}
 
+					for i, s := range xmlData.Items {
+						if xmlData.Items[i].Players == nil {
+							xmlData.Items[i].Players = make([]player, 0)
+						}
+
+						addr, err := net.LookupIP(s.Hostname)
+						if err != nil {
+							log.Println(err)
+							continue
+						}
+						xmlData.Items[i].IPAddress = addr[0].String()
+					}
+
 					m.Lock()
-					allServers = append(allServers, xmlData.Items...)
+					allServers.Servers[0].GameStates = append(allServers.Servers[0].GameStates, xmlData.Items...)
 					m.Unlock()
 				}(server)
 			}
 
 			wg.Wait()
+
+			allServers.ServerCount += len(allServers.Servers[0].GameStates)
+
+			for _, s := range allServers.Servers[0].GameStates {
+				allServers.PlayerCount += len(s.Players)
+				allServers.ObserverCount += s.ObserverCount
+			}
 
 			jsonTmp, err := json.MarshalIndent(allServers, "", "\t")
 			if err != nil {
