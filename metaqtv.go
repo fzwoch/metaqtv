@@ -168,7 +168,7 @@ func main() {
 
 			for _, s := range allServers.Servers[0].GameStates {
 				allServers.PlayerCount += len(s.Players)
-				allServers.ObserverCount += len(s.Spectators)
+				allServers.ObserverCount += s.ObserverCount
 			}
 
 			jsonTmp, err := json.MarshalIndent(allServers, "", "\t")
