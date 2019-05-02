@@ -32,16 +32,23 @@ type player struct {
 	BottomColor int    `xml:"bottomcolor" json:"-"`
 }
 
+type spectator struct {
+	Name string `xml:"name"`
+	Ping int    `xml:"ping"`
+	PL   int    `xml:"pl"`
+}
+
 type xmlItem struct {
-	Title         string   `xml:"title" json:"-"`
-	Hostname      string   `xml:"hostname" json:"Hostname"`
-	IPAddress     string   `json:"IpAddress"`
-	Port          int      `xml:"port"`
-	Link          string   `xml:"link"`
-	Status        string   `xml:"status" json:"-"`
-	Map           string   `xml:"map" json:"-"`
-	ObserverCount int      `xml:"observercount" json:"-"`
-	Players       []player `xml:"player"`
+	Title         string      `xml:"title" json:"-"`
+	Hostname      string      `xml:"hostname" json:"Hostname"`
+	IPAddress     string      `json:"IpAddress"`
+	Port          int         `xml:"port"`
+	Link          string      `xml:"link"`
+	Status        string      `xml:"status" json:"-"`
+	Map           string      `xml:"map" json:"-"`
+	ObserverCount int         `xml:"observercount" json:"-"`
+	Players       []player    `xml:"player"`
+	Spectators    []spectator `xml:"spectator" json:"-"`
 }
 
 type xmlServer struct {
@@ -56,7 +63,7 @@ type jsonOut struct {
 
 func main() {
 	var (
-		port int
+		port           int
 		updateInterval int
 	)
 
@@ -161,7 +168,7 @@ func main() {
 
 			for _, s := range allServers.Servers[0].GameStates {
 				allServers.PlayerCount += len(s.Players)
-				allServers.ObserverCount += s.ObserverCount
+				allServers.ObserverCount += len(s.Spectators)
 			}
 
 			jsonTmp, err := json.MarshalIndent(allServers, "", "\t")
