@@ -65,10 +65,12 @@ func main() {
 	var (
 		port           int
 		updateInterval int
+		timeout        int
 	)
 
 	flag.IntVar(&port, "port", 3000, "HTTP listen port")
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
+	flag.IntVar(&timeout, "timeout", 5, "RSS request timeout in seconds")
 	flag.Parse()
 
 	f, err := os.Open("metaqtv.json")
@@ -120,7 +122,7 @@ func main() {
 					defer wg.Done()
 
 					c := http.Client{
-						Timeout: 5 * time.Second,
+						Timeout: time.Duration(timeout) * time.Second,
 					}
 
 					resp, err := c.Get("http://" + server.Hostname + ":" + strconv.Itoa(server.Port) + "/rss")
