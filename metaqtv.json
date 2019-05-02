@@ -1,0 +1,126 @@
+[
+	{
+		"hostname": "suddendeath.nu",
+		"port": 28000
+	},
+	{
+		"hostname": "qw.foppa.dk",
+		"port": 28000
+	},
+	{
+		"hostname": "escaflowne.hro.nl",
+		"port": 28000
+	},
+	{
+		"hostname": "nl.badplace.eu",
+		"port": 28000
+	},
+	{
+		"hostname": "qtv.besmella.com",
+		"port": 28000
+	},
+	{
+		"hostname": "qw.net.pl",
+		"port": 28000
+	},
+	{
+		"hostname": "za.refragged.com",
+		"port": 28000
+	},
+	{
+		"hostname": "redome.mine.nu",
+		"port": 28000
+	},
+	{
+		"hostname": "86.49.28.90",
+		"port": 28666
+	},
+	{
+		"hostname": "217.182.204.42",
+		"port": 28000
+	},
+	{
+		"hostname": "164.132.231.164",
+		"port": 28000
+	},
+	{
+		"hostname": "qw.dybbuk.de",
+		"port": 28000
+	},
+	{
+		"hostname": "quakeworld.eu",
+		"port": 28000
+	},
+	{
+		"hostname": "fra.qw.traxo.net",
+		"port": 28000
+	},
+	{
+		"hostname": "qw.servegame.org",
+		"port": 27599
+	},
+	{
+		"hostname": "188.166.0.137",
+		"port": 28000
+	},
+	{
+		"hostname": "188.166.3.138",
+		"port": 27599
+	},
+	{
+		"hostname": "85.28.131.207",
+		"port": 28000
+	},
+	{
+		"hostname": "188.208.143.118",
+		"port": 28000
+	},
+	{
+		"hostname": "95.31.7.191",
+		"port": 28000
+	},
+	{
+		"hostname": "qw.e-bash.ru",
+		"port": 28000
+	},
+	{
+		"hostname": "212.85.78.219",
+		"port": 28000
+	},
+	{
+		"hostname": "qw.dreamhack.se",
+		"port": 28000
+	},
+	{
+		"hostname": "qw1.irc.ax",
+		"port": 28000
+	},
+	{
+		"hostname": "qw2.irc.ax",
+		"port": 28000
+	},
+	{
+		"hostname": "froschroom.com",
+		"port": 28000
+	},
+	{
+		"hostname": "lon.qw.traxo.net",
+		"port": 28000
+	},
+	{
+		"hostname": "naqw.duckdns.org",
+		"port": 28000
+	},
+	{
+		"hostname": "naqw-mia.duckdns.org",
+		"port": 28000
+	},
+	{
+		"hostname": "nicotinelounge.com",
+		"port": 28000
+	},
+	{
+		"hostname": "shacknws.com",
+		"port": 28000
+	}
+]
