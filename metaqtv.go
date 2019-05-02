@@ -132,14 +132,6 @@ func main() {
 		jsonOut.m.RUnlock()
 	})
 
-	http.HandleFunc("/api/v2/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		jsonOut.m.RLock()
-		w.Write(jsonOut.b)
-		jsonOut.m.RUnlock()
-	})
-
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
 		panic(err)
