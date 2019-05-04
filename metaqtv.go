@@ -68,14 +68,16 @@ func main() {
 		port           int
 		updateInterval int
 		timeout        int
+		config         string
 	)
 
 	flag.IntVar(&port, "port", 3000, "HTTP listen port")
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
 	flag.IntVar(&timeout, "timeout", 5, "RSS request timeout in seconds")
+	flag.StringVar(&config, "config", "metaqtv.json", "QTV server config file")
 	flag.Parse()
 
-	f, err := os.Open("metaqtv.json")
+	f, err := os.Open(config)
 	if err != nil {
 		panic(err)
 	}

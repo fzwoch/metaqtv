@@ -6,6 +6,8 @@ A Go re-implementation of [MetaQTV](https://github.com/eb/metaqtv/).
 
 ```
 Usage of metaqtv:
+  -config string
+    	QTV server config file (default "metaqtv.json")
   -interval int
     	Update interval in seconds (default 60)
   -port int
