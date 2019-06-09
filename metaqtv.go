@@ -97,9 +97,9 @@ func main() {
 
 	var jsonOut jsonOut
 
-	ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
-
 	go func() {
+		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
+
 		for ; true; <-ticker.C {
 			var (
 				wg sync.WaitGroup
