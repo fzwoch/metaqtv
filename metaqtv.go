@@ -6,6 +6,8 @@
 package main
 
 import (
+	"bytes"
+	"encoding/binary"
 	"encoding/json"
 	"encoding/xml"
 	"flag"
@@ -15,6 +17,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -106,6 +109,138 @@ func main() {
 				m  sync.Mutex
 			)
 
+			type host struct {
+				IP   [4]byte
+				Port uint16
+			}
+
+			qtv := make(map[host]struct{})
+
+			for _, server := range servers {
+				wg.Add(1)
+
+				go func(server qtvServer) {
+					defer wg.Done()
+
+					addr, err := net.ResolveUDPAddr("udp", server.Hostname+":"+strconv.Itoa(server.Port))
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					c, err := net.DialUDP("udp", nil, addr)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					defer c.Close()
+
+					_, err = c.Write([]byte{0x63, 0x0a, 0x00})
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					data := make([]byte, 4096)
+
+					_, err = c.Read(data)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					r := bytes.NewReader(data)
+
+					var tmp [6]byte
+
+					binary.Read(r, binary.LittleEndian, &tmp)
+					if tmp != [6]byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a} {
+						log.Println("Response error")
+						return
+					}
+
+					m.Lock()
+
+					for {
+						var host host
+
+						err = binary.Read(r, binary.BigEndian, &host)
+						if err != nil {
+							break
+						}
+
+						// what?
+						if host.Port == 0 {
+							continue
+						}
+
+						qtv[host] = struct{}{}
+					}
+
+					m.Unlock()
+				}(server)
+			}
+
+			wg.Wait()
+
+			qtvs := make([]host, 0)
+
+			for h := range qtv {
+				wg.Add(1)
+
+				go func(h host) {
+					defer wg.Done()
+
+					ip := net.IPv4(h.IP[0], h.IP[1], h.IP[2], h.IP[3])
+
+					addr, err := net.ResolveUDPAddr("udp", ip.String()+":"+strconv.Itoa(int(h.Port)))
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					c, err := net.DialUDP("udp", nil, addr)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+					defer c.Close()
+
+					c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+
+					_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					data := make([]byte, 4096)
+
+					_, err = c.Read(data)
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					bla := strings.Split(string(data), "\\")
+
+					for i := 1; i < len(bla); i += 2 {
+						if bla[i] == "*version" {
+							if strings.HasPrefix(bla[i+1], "QTV") {
+								m.Lock()
+								qtvs = append(qtvs, h)
+								m.Unlock()
+							}
+							break
+						}
+					}
+				}(h)
+			}
+
+			wg.Wait()
+
+			log.Println(len(qtvs))
+
 			allServers := struct {
 				Servers []struct {
 					GameStates []xmlItem
@@ -119,17 +254,19 @@ func main() {
 				}, 1),
 			}
 
-			for _, server := range servers {
+			for _, server := range qtvs {
 				wg.Add(1)
 
-				go func(server qtvServer) {
+				go func(server host) {
 					defer wg.Done()
+
+					ip := net.IPv4(server.IP[0], server.IP[1], server.IP[2], server.IP[3])
 
 					c := http.Client{
 						Timeout: time.Duration(timeout) * time.Second,
 					}
 
-					resp, err := c.Get("http://" + server.Hostname + ":" + strconv.Itoa(server.Port) + "/rss")
+					resp, err := c.Get("http://" + ip.String() + ":" + strconv.Itoa(int(server.Port)) + "/rss")
 					if err != nil {
 						log.Println(err)
 						return
