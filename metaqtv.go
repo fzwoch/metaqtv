@@ -216,13 +216,13 @@ func main() {
 
 					data := make([]byte, 4096)
 
-					_, err = c.Read(data)
+					s, err := c.Read(data)
 					if err != nil {
 						log.Println(err)
 						return
 					}
 
-					bla := strings.Split(string(data), "\\")
+					bla := strings.Split(string(data[:s]), "\\")
 
 					for i := 1; i < len(bla); i += 2 {
 						if bla[i] == "*version" {
