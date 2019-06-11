@@ -206,20 +206,28 @@ func main() {
 					}
 					defer c.Close()
 
-					c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-
-					_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
 					data := make([]byte, 4096)
 
-					s, err := c.Read(data)
-					if err != nil {
-						log.Println(err)
-						return
+					var s int
+					for i := 0; ; {
+						c.SetDeadline(time.Now().Add(time.Second))
+						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
+						if err != nil {
+							log.Println(err)
+							return
+						}
+
+						c.SetDeadline(time.Now().Add(time.Second))
+						s, err = c.Read(data)
+						if err != nil {
+							i++
+							if i > timeout {
+								log.Println(err)
+								return
+							}
+							continue
+						}
+						break
 					}
 
 					bla := strings.Split(string(data[:s]), "\\")
