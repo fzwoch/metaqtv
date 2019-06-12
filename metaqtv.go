@@ -16,14 +16,14 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
-	"regexp"
 )
 
-type qtvServer struct {
+type masterServer struct {
 	Hostname string `json:"hostname"`
 	Port     int    `json:"port"`
 }
@@ -92,14 +92,16 @@ func main() {
 		panic(err)
 	}
 
-	var servers []qtvServer
+	var masterServers []masterServer
 
-	err = json.Unmarshal(jsonFile, &servers)
+	err = json.Unmarshal(jsonFile, &masterServers)
 	if err != nil {
 		panic(err)
 	}
 
-	var jsonOut jsonOut
+	jsonOut := jsonOut{
+		b: []byte("{}"),
+	}
 
 	go func() {
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
@@ -115,21 +117,15 @@ func main() {
 				Port uint16
 			}
 
-			qtv := make(map[host]struct{})
+			servers := make(map[host]struct{})
 
-			for _, server := range servers {
+			for _, master := range masterServers {
 				wg.Add(1)
 
-				go func(server qtvServer) {
+				go func(master masterServer) {
 					defer wg.Done()
 
-					addr, err := net.ResolveUDPAddr("udp", server.Hostname+":"+strconv.Itoa(server.Port))
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					c, err := net.DialUDP("udp", nil, addr)
+					c, err := net.Dial("udp", master.Hostname+":"+strconv.Itoa(master.Port))
 					if err != nil {
 						log.Println(err)
 						return
@@ -154,7 +150,7 @@ func main() {
 
 					var tmp [6]byte
 
-					binary.Read(r, binary.LittleEndian, &tmp)
+					binary.Read(r, binary.BigEndian, &tmp)
 					if tmp != [6]byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a} {
 						log.Println("Response error")
 						return
@@ -175,33 +171,26 @@ func main() {
 							continue
 						}
 
-						qtv[host] = struct{}{}
+						servers[host] = struct{}{}
 					}
 
 					m.Unlock()
-				}(server)
+				}(master)
 			}
 
 			wg.Wait()
 
-			//qtvs := make([]host, 0)
-			qtvs := make(map[host]struct{})
+			qtvServers := make(map[host]struct{})
 
-			for h := range qtv {
+			for server := range servers {
 				wg.Add(1)
 
-				go func(h host) {
+				go func(server host) {
 					defer wg.Done()
 
-					ip := net.IPv4(h.IP[0], h.IP[1], h.IP[2], h.IP[3])
+					ip := net.IPv4(server.IP[0], server.IP[1], server.IP[2], server.IP[3])
 
-					addr, err := net.ResolveUDPAddr("udp", ip.String()+":"+strconv.Itoa(int(h.Port)))
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					c, err := net.DialUDP("udp", nil, addr)
+					c, err := net.Dial("udp", ip.String()+":"+strconv.Itoa(int(server.Port)))
 					if err != nil {
 						log.Println(err)
 						return
@@ -238,7 +227,7 @@ func main() {
 						if bla[i] == "*version" {
 							if strings.HasPrefix(bla[i+1], "QTV") {
 								m.Lock()
-								qtvs[h] = struct{}{}
+								qtvServers[server] = struct{}{}
 								m.Unlock()
 							} else {
 								for i := 0; ; {
@@ -284,10 +273,10 @@ func main() {
 
 										h.Port = uint16(tmp)
 
-										log.Println(y)
+										//	log.Println(y)
 
 										m.Lock()
-										qtvs[h] = struct{}{}
+										qtvServers[h] = struct{}{}
 										m.Unlock()
 									}
 									break
@@ -296,12 +285,10 @@ func main() {
 							break
 						}
 					}
-				}(h)
+				}(server)
 			}
 
 			wg.Wait()
-
-			log.Println(len(qtvs))
 
 			allServers := struct {
 				Servers []struct {
@@ -316,7 +303,7 @@ func main() {
 				}, 1),
 			}
 
-			for server := range qtvs {
+			for server := range qtvServers {
 				wg.Add(1)
 
 				go func(server host) {
