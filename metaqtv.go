@@ -204,6 +204,8 @@ func main() {
 					}
 					defer c.Close()
 
+					var s int
+
 					data := make([]byte, 4096)
 
 					for i := 0; i < retries; i++ {
@@ -215,7 +217,7 @@ func main() {
 						}
 
 						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-						_, err = c.Read(data)
+						s, err = c.Read(data)
 						if err != nil {
 							continue
 						}
@@ -228,7 +230,7 @@ func main() {
 						return
 					}
 
-					bla := strings.Split(string(data[:]), "\\")
+					bla := strings.Split(string(data[:s]), "\\")
 
 					for i := 1; i < len(bla); i += 2 {
 						if bla[i] == "*version" {
@@ -249,7 +251,7 @@ func main() {
 								}
 
 								c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-								_, err = c.Read(data)
+								s, err = c.Read(data)
 								if err != nil {
 									continue
 								}
@@ -262,17 +264,17 @@ func main() {
 
 							r := bytes.NewReader(data[:])
 
-							var tmp [6]byte
+							var tmp [8]byte
 
 							binary.Read(r, binary.BigEndian, &tmp)
-							if tmp != [...]byte{0xff, 0xff, 0xff, 0xff, 'n', 'q'} {
+							if tmp != [...]byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'} {
 								return
 							}
 
 							rr := regexp.MustCompile("\".*?\"|\\S+")
-							bla := rr.FindAllString(string(data[5:]), -1)
+							bla := rr.FindAllString(string(data[5:s]), -1)
 
-							if len(bla) > 3 && bla[0] == "qtv" && bla[3] != "\"\"" {
+							if bla[3] != "\"\"" {
 								x := strings.Trim(bla[3], "\"")
 								x = strings.TrimLeft(x, "1234567890@")
 								y := strings.Split(x, ":")
