@@ -20,6 +20,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"regexp"
 )
 
 type qtvServer struct {
@@ -183,7 +184,8 @@ func main() {
 
 			wg.Wait()
 
-			qtvs := make([]host, 0)
+			//qtvs := make([]host, 0)
+			qtvs := make(map[host]struct{})
 
 			for h := range qtv {
 				wg.Add(1)
@@ -236,10 +238,70 @@ func main() {
 						if bla[i] == "*version" {
 							if strings.HasPrefix(bla[i+1], "QTV") {
 								m.Lock()
-								qtvs = append(qtvs, h)
+								//qtvs = append(qtvs, h)
+								qtvs[h] = struct{}{}
 								m.Unlock()
+								break;
+							} else {
+								for i := 0; ; {
+									c.SetDeadline(time.Now().Add(time.Second))
+									_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
+									if err != nil {
+										log.Println(err)
+										return
+									}
+
+									c.SetDeadline(time.Now().Add(time.Second))
+									s, err = c.Read(data)
+									if err != nil {
+										i++
+										if i > timeout {
+											log.Println(err)
+											return
+										}
+										continue
+									}
+
+
+									r := regexp.MustCompile("\".*?\"|\\S+")
+									bla := r.FindAllString(string(data[5:s]), -1)
+
+								//	log.Printf("%#v\n",bla)
+
+									if len(bla) > 3 && bla[0] == "qtv" && bla[3] != "\"\"" {
+										x := strings.Trim(bla[3], "\"")
+										x = strings.TrimLeft(x, "1234567890@")
+										y := strings.Split(x, ":")
+
+										ip, err := net.LookupIP(y[0])
+										if err != nil {
+											panic(err)
+										}
+
+										tmp, err := strconv.Atoi(y[1])
+
+										var h host
+
+										h.IP[0] = ip[0][0]
+										h.IP[1] = ip[0][1]
+										h.IP[2] = ip[0][2]
+										h.IP[3] = ip[0][3]
+
+										h.Port = uint16(tmp)
+
+										log.Println(y)
+
+										m.Lock()
+										//qtvs = append(qtvs, h)
+										qtvs[h] = struct{}{}
+										m.Unlock()
+
+									}
+
+									break
+								}
+								break
 							}
-							break
 						}
 					}
 				}(h)
@@ -262,7 +324,7 @@ func main() {
 				}, 1),
 			}
 
-			for _, server := range qtvs {
+			for server := range qtvs {
 				wg.Add(1)
 
 				go func(server host) {
