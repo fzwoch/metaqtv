@@ -1,6 +1,6 @@
 # MetaQTV
 
-A Go re-implementation of [MetaQTV](https://github.com/eb/metaqtv/).
+An improved Go re-implementation of [MetaQTV](https://github.com/eb/metaqtv/).
 
 ## Usage
 
@@ -18,13 +18,13 @@ Usage of metaqtv:
 
 ## Config
 
-Application reads `metaqtv.json` from the current working directory. This config file lists QTV servers which are queried.
+Application reads `metaqtv.json` from the current working directory. This config file lists Quake master servers which are queried.
 
 ```json
 [
     {
-        "hostname": "suddendeath.nu",
-        "port": 28000
+        "hostname": "qwmaster.ocrana.de",
+        "port": 27000
     },
     [..]
 ]
