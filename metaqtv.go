@@ -72,12 +72,14 @@ func main() {
 		port           int
 		updateInterval int
 		timeout        int
+		retries        int
 		config         string
 	)
 
 	flag.IntVar(&port, "port", 3000, "HTTP listen port")
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
-	flag.IntVar(&timeout, "timeout", 5, "RSS request timeout in seconds")
+	flag.IntVar(&timeout, "timeout", 2, "Connection timeout in seconds")
+	flag.IntVar(&retries, "retry", 3, "UDP retry count")
 	flag.StringVar(&config, "config", "metaqtv.json", "QTV server config file")
 	flag.Parse()
 
@@ -134,25 +136,35 @@ func main() {
 
 					data := make([]byte, 4096)
 
-					_, err = c.Write([]byte{0x63, 0x0a, 0x00})
+					for i := 0; i < retries; i++ {
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+						_, err = c.Write([]byte{0x63, 0x0a, 0x00})
+						if err != nil {
+							log.Println(err)
+							return
+						}
+
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+						_, err = c.Read(data)
+						if err != nil {
+							continue
+						}
+
+						break
+					}
+
 					if err != nil {
 						log.Println(err)
 						return
 					}
 
-					s, err := c.Read(data)
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					r := bytes.NewReader(data[:s])
+					r := bytes.NewReader(data[:])
 
 					var tmp [6]byte
 
 					binary.Read(r, binary.BigEndian, &tmp)
-					if tmp != [6]byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a} {
-						log.Println("Response error")
+					if tmp != [...]byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a} {
+						log.Println(master.Hostname + ":" + strconv.Itoa(master.Port) + ": Response error")
 						return
 					}
 
@@ -194,29 +206,29 @@ func main() {
 
 					data := make([]byte, 4096)
 
-					var s int
-					for i := 0; ; {
-						c.SetDeadline(time.Now().Add(time.Second))
+					for i := 0; i < retries; i++ {
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
 						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
 						if err != nil {
 							log.Println(err)
 							return
 						}
 
-						c.SetDeadline(time.Now().Add(time.Second))
-						s, err = c.Read(data)
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+						_, err = c.Read(data)
 						if err != nil {
-							i++
-							if i > timeout {
-								log.Println(err)
-								return
-							}
 							continue
 						}
+
 						break
 					}
 
-					bla := strings.Split(string(data[:s]), "\\")
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					bla := strings.Split(string(data[:]), "\\")
 
 					for i := 1; i < len(bla); i += 2 {
 						if bla[i] == "*version" {
@@ -224,58 +236,66 @@ func main() {
 								m.Lock()
 								qtvServers[server] = struct{}{}
 								m.Unlock()
-							} else {
-								for i := 0; ; {
-									c.SetDeadline(time.Now().Add(time.Second))
-									_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
-									if err != nil {
-										log.Println(err)
-										return
-									}
 
-									c.SetDeadline(time.Now().Add(time.Second))
-									s, err = c.Read(data)
-									if err != nil {
-										i++
-										if i > timeout {
-											log.Println(err)
-											return
-										}
-										continue
-									}
+								break
+							}
 
-									r := regexp.MustCompile("\".*?\"|\\S+")
-									bla := r.FindAllString(string(data[5:s]), -1)
-
-									if len(bla) > 3 && bla[0] == "qtv" && bla[3] != "\"\"" {
-										x := strings.Trim(bla[3], "\"")
-										x = strings.TrimLeft(x, "1234567890@")
-										y := strings.Split(x, ":")
-
-										ip, err := net.LookupIP(y[0])
-										if err != nil {
-											panic(err)
-										}
-
-										tmp, err := strconv.Atoi(y[1])
-
-										var h host
-
-										h.IP[0] = ip[0][0]
-										h.IP[1] = ip[0][1]
-										h.IP[2] = ip[0][2]
-										h.IP[3] = ip[0][3]
-
-										h.Port = uint16(tmp)
-
-										//	log.Println(y)
-
-										m.Lock()
-										qtvServers[h] = struct{}{}
-										m.Unlock()
-									}
-									break
+							for i := 0; i < retries; i++ {
+								c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+								_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
+								if err != nil {
+									log.Println(err)
+									return
 								}
+
+								c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+								_, err = c.Read(data)
+								if err != nil {
+									continue
+								}
+							}
+
+							if err != nil {
+								log.Println(err)
+								return
+							}
+
+							r := bytes.NewReader(data[:])
+
+							var tmp [6]byte
+
+							binary.Read(r, binary.BigEndian, &tmp)
+							if tmp != [...]byte{0xff, 0xff, 0xff, 0xff, 'n', 'q'} {
+								return
+							}
+
+							rr := regexp.MustCompile("\".*?\"|\\S+")
+							bla := rr.FindAllString(string(data[5:]), -1)
+
+							if len(bla) > 3 && bla[0] == "qtv" && bla[3] != "\"\"" {
+								x := strings.Trim(bla[3], "\"")
+								x = strings.TrimLeft(x, "1234567890@")
+								y := strings.Split(x, ":")
+
+								ip, err := net.LookupIP(y[0])
+								if err != nil {
+									panic(err)
+								}
+
+								tmp, err := strconv.Atoi(y[1])
+
+								var h host
+
+								h.IP[0] = ip[0][0]
+								h.IP[1] = ip[0][1]
+								h.IP[2] = ip[0][2]
+								h.IP[3] = ip[0][3]
+
+								h.Port = uint16(tmp)
+
+								m.Lock()
+								qtvServers[h] = struct{}{}
+								m.Unlock()
 							}
 							break
 						}
