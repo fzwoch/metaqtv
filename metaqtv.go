@@ -238,10 +238,8 @@ func main() {
 						if bla[i] == "*version" {
 							if strings.HasPrefix(bla[i+1], "QTV") {
 								m.Lock()
-								//qtvs = append(qtvs, h)
 								qtvs[h] = struct{}{}
 								m.Unlock()
-								break;
 							} else {
 								for i := 0; ; {
 									c.SetDeadline(time.Now().Add(time.Second))
@@ -262,11 +260,8 @@ func main() {
 										continue
 									}
 
-
 									r := regexp.MustCompile("\".*?\"|\\S+")
 									bla := r.FindAllString(string(data[5:s]), -1)
-
-								//	log.Printf("%#v\n",bla)
 
 									if len(bla) > 3 && bla[0] == "qtv" && bla[3] != "\"\"" {
 										x := strings.Trim(bla[3], "\"")
@@ -292,16 +287,13 @@ func main() {
 										log.Println(y)
 
 										m.Lock()
-										//qtvs = append(qtvs, h)
 										qtvs[h] = struct{}{}
 										m.Unlock()
-
 									}
-
 									break
 								}
-								break
 							}
+							break
 						}
 					}
 				}(h)
