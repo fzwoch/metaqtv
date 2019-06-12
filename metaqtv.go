@@ -132,21 +132,21 @@ func main() {
 					}
 					defer c.Close()
 
+					data := make([]byte, 4096)
+
 					_, err = c.Write([]byte{0x63, 0x0a, 0x00})
 					if err != nil {
 						log.Println(err)
 						return
 					}
 
-					data := make([]byte, 4096)
-
-					_, err = c.Read(data)
+					s, err := c.Read(data)
 					if err != nil {
 						log.Println(err)
 						return
 					}
 
-					r := bytes.NewReader(data)
+					r := bytes.NewReader(data[:s])
 
 					var tmp [6]byte
 
