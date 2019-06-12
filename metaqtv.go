@@ -166,11 +166,6 @@ func main() {
 							break
 						}
 
-						// what?
-						if host.Port == 0 {
-							continue
-						}
-
 						servers[host] = struct{}{}
 					}
 
