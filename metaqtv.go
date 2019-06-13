@@ -190,8 +190,6 @@ func main() {
 
 					for i := 0; i < retries; i++ {
 						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						// for actual status
-						//_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
 						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
 						if err != nil {
 							log.Println(err)
@@ -229,6 +227,33 @@ func main() {
 						return
 					}
 
+					for i := 0; i < retries; i++ {
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
+						if err != nil {
+							log.Println(err)
+							return
+						}
+
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						s, err = c.Read(data)
+						if err != nil {
+							continue
+						}
+
+						break
+					}
+
+					if err != nil {
+						log.Println(err)
+						return
+					}
+
+					if !bytes.Equal(data[:6], []byte{0xff, 0xff, 0xff, 0xff, 'n', '\\'}) {
+						log.Println(ip.String() + ":" + strconv.Itoa(int(server.Port)) + ": Response error")
+						return
+					}
+
 					qtv := serverItem{
 						Hostname:  ip.String(),
 						IPAddress: ip.String(),
@@ -237,17 +262,33 @@ func main() {
 						Players:   make([]string, 0),
 					}
 
+					scanner := bufio.NewScanner(strings.NewReader(string(data[6:s])))
+
+					scanner.Scan()
+
+					for scanner.Scan() {
+						r := csv.NewReader(strings.NewReader(scanner.Text()))
+						r.Comma = ' '
+
+						player, err := r.Read()
+						if err != nil {
+							log.Println(err)
+							return
+						}
+
+						if len(player) != 8 {
+							continue
+						}
+
+						qtv.Players = append(qtv.Players, player[4])
+					}
+
 					m.Lock()
 
-					allServers.ServerCount += len(qtv.Players)
+					allServers.PlayerCount += len(qtv.Players)
 					allServers.Servers[0].GameStates = append(allServers.Servers[0].GameStates, qtv)
 
 					m.Unlock()
-
-					scanner := bufio.NewScanner(strings.NewReader(string(data[6:s])))
-					for scanner.Scan() {
-						//						log.Println(scanner.Text())
-					}
 				}(server)
 			}
 
