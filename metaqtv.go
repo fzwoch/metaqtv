@@ -6,66 +6,22 @@
 package main
 
 import (
+	"bufio"
 	"bytes"
 	"encoding/binary"
+	"encoding/csv"
 	"encoding/json"
-	"encoding/xml"
 	"flag"
 	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
 	"os"
-	"regexp"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 )
-
-type masterServer struct {
-	Hostname string `json:"hostname"`
-	Port     int    `json:"port"`
-}
-
-type player struct {
-	Name        string `xml:"name"`
-	Team        string `xml:"team" json:"-"`
-	Frags       int    `xml:"frags" json:"-"`
-	Ping        int    `xml:"ping" json:"-"`
-	PL          int    `xml:"pl" json:"-"`
-	TopColor    int    `xml:"topcolor" json:"-"`
-	BottomColor int    `xml:"bottomcolor" json:"-"`
-}
-
-type spectator struct {
-	Name string `xml:"name"`
-	Ping int    `xml:"ping"`
-	PL   int    `xml:"pl"`
-}
-
-type xmlItem struct {
-	Title         string      `xml:"title" json:"-"`
-	Hostname      string      `xml:"hostname" json:"Hostname"`
-	IPAddress     string      `json:"IpAddress"`
-	Port          int         `xml:"port"`
-	Link          string      `xml:"link"`
-	Status        string      `xml:"status" json:"-"`
-	Map           string      `xml:"map" json:"-"`
-	ObserverCount int         `xml:"observercount" json:"-"`
-	Players       []player    `xml:"player"`
-	Spectators    []spectator `xml:"spectator" json:"-"`
-}
-
-type xmlServer struct {
-	XMLName xml.Name  `xml:"rss"`
-	Items   []xmlItem `xml:"channel>item"`
-}
-
-type jsonOut struct {
-	m sync.RWMutex
-	b []byte
-}
 
 func main() {
 	var (
@@ -78,8 +34,8 @@ func main() {
 
 	flag.IntVar(&port, "port", 3000, "HTTP listen port")
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
-	flag.IntVar(&timeout, "timeout", 2, "Connection timeout in seconds")
-	flag.IntVar(&retries, "retry", 3, "UDP retry count")
+	flag.IntVar(&timeout, "timeout", 500, "UDP Connection timeout in milliseconds")
+	flag.IntVar(&retries, "retry", 5, "UDP retry count")
 	flag.StringVar(&config, "config", "metaqtv.json", "QTV server config file")
 	flag.Parse()
 
@@ -94,6 +50,11 @@ func main() {
 		panic(err)
 	}
 
+	type masterServer struct {
+		Hostname string `json:"hostname"`
+		Port     int    `json:"port"`
+	}
+
 	var masterServers []masterServer
 
 	err = json.Unmarshal(jsonFile, &masterServers)
@@ -101,7 +62,10 @@ func main() {
 		panic(err)
 	}
 
-	jsonOut := jsonOut{
+	jsonOut := struct {
+		m sync.RWMutex
+		b []byte
+	}{
 		b: []byte("{}"),
 	}
 
@@ -134,18 +98,19 @@ func main() {
 					}
 					defer c.Close()
 
+					s := 0
 					data := make([]byte, 4096)
 
 					for i := 0; i < retries; i++ {
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
 						_, err = c.Write([]byte{0x63, 0x0a, 0x00})
 						if err != nil {
 							log.Println(err)
 							return
 						}
 
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-						_, err = c.Read(data)
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						s, err = c.Read(data)
 						if err != nil {
 							continue
 						}
@@ -158,15 +123,12 @@ func main() {
 						return
 					}
 
-					r := bytes.NewReader(data[:])
-
-					var tmp [6]byte
-
-					binary.Read(r, binary.BigEndian, &tmp)
-					if tmp != [...]byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a} {
+					if !bytes.Equal(data[:6], []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}) {
 						log.Println(master.Hostname + ":" + strconv.Itoa(master.Port) + ": Response error")
 						return
 					}
+
+					r := bytes.NewReader(data[6:s])
 
 					m.Lock()
 
@@ -187,7 +149,28 @@ func main() {
 
 			wg.Wait()
 
-			qtvServers := make(map[host]struct{})
+			log.Println("master servers scan results in", len(servers), "servers")
+
+			type serverItem struct {
+				Hostname  string
+				IPAddress string `json:"IpAddress"`
+				Port      uint16
+				Link      string
+				Players   []string
+			}
+
+			allServers := struct {
+				Servers []struct {
+					GameStates []serverItem
+				}
+				ServerCount   int
+				PlayerCount   int
+				ObserverCount int
+			}{
+				Servers: make([]struct {
+					GameStates []serverItem
+				}, 1),
+			}
 
 			for server := range servers {
 				wg.Add(1)
@@ -204,19 +187,20 @@ func main() {
 					}
 					defer c.Close()
 
-					var s int
-
+					s := 0
 					data := make([]byte, 4096)
 
 					for i := 0; i < retries; i++ {
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						// for actual status
+						//_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
+						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
 						if err != nil {
 							log.Println(err)
 							return
 						}
 
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
+						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
 						s, err = c.Read(data)
 						if err != nil {
 							continue
@@ -230,155 +214,51 @@ func main() {
 						return
 					}
 
-					bla := strings.Split(string(data[:s]), "\\")
-
-					for i := 1; i < len(bla); i += 2 {
-						if bla[i] == "*version" {
-							if strings.HasPrefix(bla[i+1], "QTV") {
-								m.Lock()
-								qtvServers[server] = struct{}{}
-								m.Unlock()
-
-								break
-							}
-
-							for i := 0; i < retries; i++ {
-								c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-								_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
-								if err != nil {
-									log.Println(err)
-									return
-								}
-
-								c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Second))
-								s, err = c.Read(data)
-								if err != nil {
-									continue
-								}
-							}
-
-							if err != nil {
-								log.Println(err)
-								return
-							}
-
-							r := bytes.NewReader(data[:])
-
-							var tmp [8]byte
-
-							binary.Read(r, binary.BigEndian, &tmp)
-							if tmp != [...]byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'} {
-								return
-							}
-
-							rr := regexp.MustCompile("\".*?\"|\\S+")
-							bla := rr.FindAllString(string(data[5:s]), -1)
-
-							if bla[3] != "\"\"" {
-								x := strings.Trim(bla[3], "\"")
-								x = strings.TrimLeft(x, "1234567890@")
-								y := strings.Split(x, ":")
-
-								ip, err := net.LookupIP(y[0])
-								if err != nil {
-									panic(err)
-								}
-
-								tmp, err := strconv.Atoi(y[1])
-
-								var h host
-
-								h.IP[0] = ip[0][0]
-								h.IP[1] = ip[0][1]
-								h.IP[2] = ip[0][2]
-								h.IP[3] = ip[0][3]
-
-								h.Port = uint16(tmp)
-
-								m.Lock()
-								qtvServers[h] = struct{}{}
-								m.Unlock()
-							}
-							break
-						}
-					}
-				}(server)
-			}
-
-			wg.Wait()
-
-			allServers := struct {
-				Servers []struct {
-					GameStates []xmlItem
-				}
-				ServerCount   int
-				PlayerCount   int
-				ObserverCount int
-			}{
-				Servers: make([]struct {
-					GameStates []xmlItem
-				}, 1),
-			}
-
-			for server := range qtvServers {
-				wg.Add(1)
-
-				go func(server host) {
-					defer wg.Done()
-
-					ip := net.IPv4(server.IP[0], server.IP[1], server.IP[2], server.IP[3])
-
-					c := http.Client{
-						Timeout: time.Duration(timeout) * time.Second,
-					}
-
-					resp, err := c.Get("http://" + ip.String() + ":" + strconv.Itoa(int(server.Port)) + "/rss")
-					if err != nil {
-						log.Println(err)
+					if !bytes.Equal(data[:8], []byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'}) {
 						return
 					}
-					defer resp.Body.Close()
 
-					body, err := ioutil.ReadAll(resp.Body)
-					if err != nil {
-						panic(err)
-					}
+					r := csv.NewReader(strings.NewReader(string(data[5:s])))
+					r.Comma = ' '
 
-					var xmlData xmlServer
-
-					err = xml.Unmarshal(body, &xmlData)
+					fields, err := r.Read()
 					if err != nil {
 						log.Println(err)
 						return
 					}
 
-					for i, s := range xmlData.Items {
-						if xmlData.Items[i].Players == nil {
-							xmlData.Items[i].Players = make([]player, 0)
-						}
+					if fields[3] == "" {
+						return
+					}
 
-						addr, err := net.LookupIP(s.Hostname)
-						if err != nil {
-							log.Println(err)
-							continue
-						}
-						xmlData.Items[i].IPAddress = addr[0].String()
+					qtv := serverItem{
+						Hostname:  ip.String(),
+						IPAddress: ip.String(),
+						Port:      server.Port,
+						Link:      "http://" + strings.TrimLeft(fields[3], "1234567890@") + "/watch.qtv?sid=" + strings.Split(fields[3], "@")[0],
+						Players:   make([]string, 0),
 					}
 
 					m.Lock()
-					allServers.Servers[0].GameStates = append(allServers.Servers[0].GameStates, xmlData.Items...)
+
+					allServers.ServerCount += len(qtv.Players)
+					allServers.Servers[0].GameStates = append(allServers.Servers[0].GameStates, qtv)
 					m.Unlock()
+
+					log.Println(fields)
+
+					scanner := bufio.NewScanner(strings.NewReader(string(data[6:s])))
+					for scanner.Scan() {
+						//						log.Println(scanner.Text())
+					}
 				}(server)
 			}
 
 			wg.Wait()
 
-			allServers.ServerCount += len(allServers.Servers[0].GameStates)
+			log.Println("server scan resulted in", len(allServers.Servers[0].GameStates), "servers listing a QTV")
 
-			for _, s := range allServers.Servers[0].GameStates {
-				allServers.PlayerCount += len(s.Players)
-				allServers.ObserverCount += s.ObserverCount
-			}
+			allServers.ServerCount = len(allServers.Servers[0].GameStates)
 
 			jsonTmp, err := json.MarshalIndent(allServers, "", "\t")
 			if err != nil {

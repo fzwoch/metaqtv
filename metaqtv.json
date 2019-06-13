@@ -8,10 +8,6 @@
 		"port": 27000
 	},
 	{
-		"hostname": "master.quakeworld.nu",
-		"port": 27000
-	},
-	{
 		"hostname": "qwmaster.fodquake.net",
 		"port": 27000
 	}
