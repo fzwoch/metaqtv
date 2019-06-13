@@ -12,8 +12,10 @@ Usage of metaqtv:
     	Update interval in seconds (default 60)
   -port int
     	HTTP listen port (default 3000)
+  -retry int
+    	UDP retry count (default 5)
   -timeout int
-    	RSS request timeout in seconds (default 5)
+    	UDP Connection timeout in milliseconds (default 500)
 ```
 
 ## Config
