@@ -149,8 +149,6 @@ func main() {
 
 			wg.Wait()
 
-			log.Println("master servers scan results in", len(servers), "servers")
-
 			type serverItem struct {
 				Hostname  string
 				IPAddress string `json:"IpAddress"`
@@ -243,9 +241,8 @@ func main() {
 
 					allServers.ServerCount += len(qtv.Players)
 					allServers.Servers[0].GameStates = append(allServers.Servers[0].GameStates, qtv)
-					m.Unlock()
 
-					log.Println(fields)
+					m.Unlock()
 
 					scanner := bufio.NewScanner(strings.NewReader(string(data[6:s])))
 					for scanner.Scan() {
@@ -255,8 +252,6 @@ func main() {
 			}
 
 			wg.Wait()
-
-			log.Println("server scan resulted in", len(allServers.Servers[0].GameStates), "servers listing a QTV")
 
 			allServers.ServerCount = len(allServers.Servers[0].GameStates)
 
