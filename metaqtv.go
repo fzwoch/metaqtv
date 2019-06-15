@@ -91,7 +91,7 @@ func main() {
 				go func(master masterServer) {
 					defer wg.Done()
 
-					c, err := net.Dial("udp", master.Hostname+":"+strconv.Itoa(master.Port))
+					c, err := net.Dial("udp4", master.Hostname+":"+strconv.Itoa(master.Port))
 					if err != nil {
 						log.Println(err)
 						return
@@ -178,7 +178,7 @@ func main() {
 
 					ip := net.IPv4(server.IP[0], server.IP[1], server.IP[2], server.IP[3])
 
-					c, err := net.Dial("udp", ip.String()+":"+strconv.Itoa(int(server.Port)))
+					c, err := net.Dial("udp4", ip.String()+":"+strconv.Itoa(int(server.Port)))
 					if err != nil {
 						log.Println(err)
 						return
