@@ -15,7 +15,7 @@ Usage of metaqtv:
   -retry int
     	UDP retry count (default 5)
   -timeout int
-    	UDP Connection timeout in milliseconds (default 500)
+    	UDP timeout in milliseconds (default 500)
 ```
 
 ## Config

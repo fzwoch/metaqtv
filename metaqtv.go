@@ -34,7 +34,7 @@ func main() {
 
 	flag.IntVar(&port, "port", 3000, "HTTP listen port")
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
-	flag.IntVar(&timeout, "timeout", 500, "UDP Connection timeout in milliseconds")
+	flag.IntVar(&timeout, "timeout", 500, "UDP timeout in milliseconds")
 	flag.IntVar(&retries, "retry", 5, "UDP retry count")
 	flag.StringVar(&config, "config", "metaqtv.json", "QTV server config file")
 	flag.Parse()
