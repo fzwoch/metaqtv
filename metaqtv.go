@@ -258,7 +258,7 @@ func main() {
 						Hostname:  ip.String(),
 						IPAddress: ip.String(),
 						Port:      server.Port,
-						Link:      "http://" + strings.TrimLeft(strings.TrimLeft(fields[3], "1234567890"), "@" )+ "/watch.qtv?sid=" + strings.Split(fields[3], "@")[0],
+						Link:      "http://" + strings.TrimLeft(strings.TrimLeft(fields[3], "1234567890"), "@") + "/watch.qtv?sid=" + strings.Split(fields[3], "@")[0],
 						Players:   make([]string, 0),
 					}
 
