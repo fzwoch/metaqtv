@@ -99,7 +99,7 @@ func main() {
 					defer c.Close()
 
 					s := 0
-					data := make([]byte, 4096)
+					data := make([]byte, 8192)
 
 					for i := 0; i < retries; i++ {
 						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
@@ -186,7 +186,7 @@ func main() {
 					defer c.Close()
 
 					s := 0
-					data := make([]byte, 4096)
+					data := make([]byte, 8192)
 
 					for i := 0; i < retries; i++ {
 						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
