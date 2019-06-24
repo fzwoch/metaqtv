@@ -296,6 +296,7 @@ func main() {
 
 						qtv.Players = append(qtv.Players, string(name))
 					}
+
 					m.Lock()
 
 					allServers.PlayerCount += len(qtv.Players)
