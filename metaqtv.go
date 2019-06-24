@@ -206,7 +206,9 @@ func main() {
 					}
 
 					if err != nil {
-						log.Println(err)
+						// disable logging here. it seems that servers may not reply if they do not support
+						// this specific "32" status request.
+						//	log.Println(err)
 						return
 					}
 
