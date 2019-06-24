@@ -282,9 +282,20 @@ func main() {
 							continue
 						}
 
-						qtv.Players = append(qtv.Players, player[4])
-					}
+						name := []byte(player[4])
 
+						for i, r := range name {
+							if r >= 18 && r <= 27 {
+								name[i] += 30
+							} else if r >= 146 && r <= 155 {
+								name[i] -= 98
+							} else {
+								name[i] &= 0x7f
+							}
+						}
+
+						qtv.Players = append(qtv.Players, string(name))
+					}
 					m.Lock()
 
 					allServers.PlayerCount += len(qtv.Players)
