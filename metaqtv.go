@@ -284,6 +284,11 @@ func main() {
 
 						name := []byte(player[4])
 
+						// what to do with specs? just add as players, the more we find the better
+						if bytes.Equal(name[:3], []byte{'\\', 's', '\\'}) {
+							name = name[3:]
+						}
+
 						for i, r := range name {
 							if r >= 18 && r <= 27 {
 								name[i] += 30
