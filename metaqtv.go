@@ -220,6 +220,8 @@ func main() {
 					}
 
 					if fields[3] == "" {
+						// these are the servers that are not configured correctly,
+						// that means they are not reporting their qtv ip as they should.
 						return
 					}
 
