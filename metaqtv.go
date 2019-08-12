@@ -16,7 +16,6 @@ import (
 	"log"
 	"net"
 	"net/http"
-	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -39,13 +38,7 @@ func main() {
 	flag.StringVar(&config, "config", "metaqtv.json", "Master server config file")
 	flag.Parse()
 
-	f, err := os.Open(config)
-	if err != nil {
-		panic(err)
-	}
-	defer f.Close()
-
-	jsonFile, err := ioutil.ReadAll(f)
+	jsonFile, err := ioutil.ReadFile(config)
 	if err != nil {
 		panic(err)
 	}
