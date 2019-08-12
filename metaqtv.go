@@ -199,13 +199,14 @@ func main() {
 					}
 
 					if err != nil {
-						// disable logging here. it seems that servers may not reply if they do not support
+						// no logging here. it seems that servers may not reply if they do not support
 						// this specific "32" status request.
-						//	log.Println(err)
 						return
 					}
 
 					if !bytes.Equal(data[:8], []byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'}) {
+						// some servers react to the specific "32" status message but will send the regular
+						// status message because they misunderstood our command.
 						return
 					}
 
