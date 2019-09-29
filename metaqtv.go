@@ -278,7 +278,13 @@ func main() {
 							continue
 						}
 
-						name := []byte(player[4])
+						s, err := strconv.Unquote("`" + player[4] + "`")
+						if err != nil {
+							log.Println(err)
+							continue
+						}
+
+						name := []byte(s)
 
 						// what to do with specs? just add as players, the more we find the better
 						if bytes.Equal(name[:3], []byte{'\\', 's', '\\'}) {
