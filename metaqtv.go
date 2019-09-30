@@ -278,6 +278,9 @@ func main() {
 							continue
 						}
 
+						// what to do with specs? just add as players, the more we find the better
+						player[4] = strings.TrimPrefix(player[4], "\\s\\")
+
 						s, err := strconv.Unquote("`" + player[4] + "`")
 						if err != nil {
 							log.Println(err)
@@ -285,11 +288,6 @@ func main() {
 						}
 
 						name := []byte(s)
-
-						// what to do with specs? just add as players, the more we find the better
-						if bytes.Equal(name[:3], []byte{'\\', 's', '\\'}) {
-							name = name[3:]
-						}
 
 						for i, r := range name {
 							if r >= 18 && r <= 27 {
