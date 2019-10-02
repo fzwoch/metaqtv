@@ -22,6 +22,40 @@ import (
 	"time"
 )
 
+var charset = map[byte]byte{
+	0:  ' ',
+	1:  ' ',
+	2:  ' ',
+	3:  ' ',
+	4:  ' ',
+	5:  ' ',
+	6:  ' ',
+	7:  ' ',
+	8:  ' ',
+	9:  ' ',
+	10: ' ',
+	11: ' ',
+	12: ' ',
+	13: ' ',
+	14: ' ',
+	15: ' ',
+	16: '[',
+	17: ']',
+	18: '0',
+	19: '1',
+	20: '2',
+	21: '3',
+	22: '4',
+	23: '5',
+	24: '6',
+	25: '7',
+	26: '8',
+	27: '9',
+	28: ' ',
+	29: ' ',
+	30: ' ',
+}
+
 func main() {
 	var (
 		port           int
@@ -278,24 +312,13 @@ func main() {
 							continue
 						}
 
-						// what to do with specs? just add as players, the more we find the better
-						player[4] = strings.TrimPrefix(player[4], "\\s\\")
+						name := []byte(player[4])
 
-						s, err := strconv.Unquote("`" + player[4] + "`")
-						if err != nil {
-							log.Println(err)
-							continue
-						}
+						for i := range name {
+							name[i] &= 0x7f
 
-						name := []byte(s)
-
-						for i, r := range name {
-							if r >= 18 && r <= 27 {
-								name[i] += 30
-							} else if r >= 146 && r <= 155 {
-								name[i] -= 98
-							} else {
-								name[i] &= 0x7f
+							if c, ok := charset[name[i]]; ok {
+								name[i] = c
 							}
 						}
 
