@@ -54,6 +54,7 @@ var charset = map[byte]byte{
 	28: ' ',
 	29: ' ',
 	30: ' ',
+	31: ' ',
 }
 
 func main() {
