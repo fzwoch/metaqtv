@@ -232,7 +232,7 @@ func main() {
 
 					for i := 0; i < retries; i++ {
 						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', 0x0a})
+						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a})
 						if err != nil {
 							log.Println(err)
 							return
@@ -279,7 +279,13 @@ func main() {
 							return
 						}
 
-						if len(player) != 8 {
+						if len(player) != 9 {
+							continue
+						}
+
+						player[4] = strings.TrimPrefix(player[4], "\\s\\")
+
+						if player[4] == "[ServeMe]" {
 							continue
 						}
 
