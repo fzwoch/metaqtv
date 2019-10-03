@@ -299,7 +299,7 @@ func main() {
 							}
 						}
 
-						qtv.Players = append(qtv.Players, string(name))
+						qtv.Players = append(qtv.Players, strings.TrimSpace(string(name)))
 					}
 
 					m.Lock()
