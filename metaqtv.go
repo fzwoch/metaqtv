@@ -152,7 +152,9 @@ func main() {
 				IPAddress string `json:"IpAddress"`
 				Port      uint16
 				Link      string
-				Players   []string
+				Players   []struct {
+					Name string
+				}
 			}
 
 			allServers := struct {
@@ -262,7 +264,9 @@ func main() {
 						IPAddress: ip.String(),
 						Port:      server.Port,
 						Link:      "http://" + strings.TrimLeft(strings.TrimLeft(fields[3], "1234567890"), "@") + "/watch.qtv?sid=" + strings.Split(fields[3], "@")[0],
-						Players:   make([]string, 0),
+						Players: make([]struct {
+							Name string
+						}, 0),
 					}
 
 					scanner := bufio.NewScanner(strings.NewReader(string(data[6:s])))
@@ -299,7 +303,9 @@ func main() {
 							}
 						}
 
-						qtv.Players = append(qtv.Players, strings.TrimSpace(string(name)))
+						qtv.Players = append(qtv.Players, struct {
+							Name string
+						}{Name: strings.TrimSpace(string(name))})
 					}
 
 					m.Lock()
