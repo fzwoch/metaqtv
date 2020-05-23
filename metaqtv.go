@@ -226,8 +226,6 @@ func main() {
 						return
 					}
 
-					log.Println(ip, fields, string(data[5:s]))
-
 					if fields[3] == "" {
 						// these are the servers that are not configured correctly,
 						// that means they are not reporting their qtv ip as they should.
