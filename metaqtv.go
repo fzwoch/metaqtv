@@ -158,17 +158,13 @@ func main() {
 			}
 
 			allServers := struct {
-				Servers []struct {
+				Servers [1]struct {
 					GameStates []serverItem
 				}
 				ServerCount   int
 				PlayerCount   int
 				ObserverCount int
-			}{
-				Servers: make([]struct {
-					GameStates []serverItem
-				}, 1),
-			}
+			}{}
 
 			for server := range servers {
 				wg.Add(1)
