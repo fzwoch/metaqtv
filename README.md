@@ -10,6 +10,8 @@ Usage of metaqtv:
     	Master server config file (default "metaqtv.json")
   -interval int
     	Update interval in seconds (default 60)
+  -keepalive int
+    	Keep server alive for N tries (default 3)
   -port int
     	HTTP listen port (default 3000)
   -retry int
