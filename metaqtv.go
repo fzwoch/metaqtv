@@ -34,6 +34,7 @@ func main() {
 		timeout        int
 		retries        int
 		config         string
+		keepalive      int
 	)
 
 	flag.IntVar(&port, "port", 3000, "HTTP listen port")
@@ -41,6 +42,7 @@ func main() {
 	flag.IntVar(&timeout, "timeout", 500, "UDP timeout in milliseconds")
 	flag.IntVar(&retries, "retry", 5, "UDP retry count")
 	flag.StringVar(&config, "config", "metaqtv.json", "Master server config file")
+	flag.IntVar(&keepalive, "keepalive", 3, "Keep server alive for N tries")
 	flag.Parse()
 
 	jsonFile, err := ioutil.ReadFile(config)
@@ -68,6 +70,24 @@ func main() {
 	}
 
 	go func() {
+		type host struct {
+			IP   [4]byte
+			Port uint16
+		}
+
+		type serverItem struct {
+			Hostname       string
+			IPAddress      string `json:"IpAddress"`
+			Port           uint16
+			Link           string
+			keepaliveCount int
+			Players        []struct {
+				Name string
+			}
+		}
+
+		allServers := make(map[host]serverItem)
+
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
 
 		for ; true; <-ticker.C {
@@ -75,11 +95,6 @@ func main() {
 				wg sync.WaitGroup
 				m  sync.Mutex
 			)
-
-			type host struct {
-				IP   [4]byte
-				Port uint16
-			}
 
 			servers := make(map[host]struct{})
 
@@ -146,25 +161,6 @@ func main() {
 			}
 
 			wg.Wait()
-
-			type serverItem struct {
-				Hostname  string
-				IPAddress string `json:"IpAddress"`
-				Port      uint16
-				Link      string
-				Players   []struct {
-					Name string
-				}
-			}
-
-			allServers := struct {
-				Servers [1]struct {
-					GameStates []serverItem
-				}
-				ServerCount   int
-				PlayerCount   int
-				ObserverCount int
-			}{}
 
 			for server := range servers {
 				wg.Add(1)
@@ -256,10 +252,11 @@ func main() {
 					}
 
 					qtv := serverItem{
-						Hostname:  ip.String(),
-						IPAddress: ip.String(),
-						Port:      server.Port,
-						Link:      "http://" + strings.TrimLeft(strings.TrimLeft(fields[3], "1234567890"), "@") + "/watch.qtv?sid=" + strings.Split(fields[3], "@")[0],
+						Hostname:       ip.String(),
+						IPAddress:      ip.String(),
+						Port:           server.Port,
+						Link:           "http://" + strings.TrimLeft(strings.TrimLeft(fields[3], "1234567890"), "@") + "/watch.qtv?sid=" + strings.Split(fields[3], "@")[0],
+						keepaliveCount: keepalive,
 						Players: make([]struct {
 							Name string
 						}, 0),
@@ -305,19 +302,39 @@ func main() {
 					}
 
 					m.Lock()
-
-					allServers.PlayerCount += len(qtv.Players)
-					allServers.Servers[0].GameStates = append(allServers.Servers[0].GameStates, qtv)
-
+					allServers[server] = qtv
 					m.Unlock()
 				}(server)
 			}
 
 			wg.Wait()
 
-			allServers.ServerCount = len(allServers.Servers[0].GameStates)
+			jsonServers := struct {
+				Servers [1]struct {
+					GameStates []serverItem
+				}
+				ServerCount   int
+				PlayerCount   int
+				ObserverCount int
+			}{}
 
-			jsonTmp, err := json.MarshalIndent(allServers, "", "\t")
+			for key, server := range allServers {
+				if server.keepaliveCount <= 0 {
+					delete(allServers, key)
+					continue
+				}
+
+				server.keepaliveCount--
+
+				jsonServers.PlayerCount += len(server.Players)
+				jsonServers.Servers[0].GameStates = append(jsonServers.Servers[0].GameStates, server)
+
+				allServers[key] = server
+			}
+
+			jsonServers.ServerCount = len(jsonServers.Servers[0].GameStates)
+
+			jsonTmp, err := json.MarshalIndent(jsonServers, "", "\t")
 			if err != nil {
 				panic(err)
 			}
