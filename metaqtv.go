@@ -316,7 +316,9 @@ func main() {
 				ServerCount   int
 				PlayerCount   int
 				ObserverCount int
-			}{}
+			}{
+				ObserverCount: -1,
+			}
 
 			for key, server := range allServers {
 				if server.keepaliveCount <= 0 {
