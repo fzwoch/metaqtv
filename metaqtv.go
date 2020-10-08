@@ -313,9 +313,10 @@ func main() {
 				Servers [1]struct {
 					GameStates []serverItem
 				}
-				ServerCount   int
-				PlayerCount   int
-				ObserverCount int
+				ServerCount       int
+				ActiveServerCount int
+				PlayerCount       int
+				ObserverCount     int
 			}{
 				ObserverCount: -1,
 			}
@@ -329,6 +330,9 @@ func main() {
 				server.keepaliveCount--
 
 				jsonServers.PlayerCount += len(server.Players)
+				if len(server.Players) > 0 {
+					jsonServers.ActiveServerCount++
+				}
 				jsonServers.Servers[0].GameStates = append(jsonServers.Servers[0].GameStates, server)
 
 				allServers[key] = server
