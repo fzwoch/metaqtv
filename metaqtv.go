@@ -63,7 +63,7 @@ func main() {
 	}
 
 	jsonOut := struct {
-		m sync.RWMutex
+		sync.RWMutex
 		b []byte
 	}{
 		b: []byte("{}"),
@@ -345,18 +345,18 @@ func main() {
 				panic(err)
 			}
 
-			jsonOut.m.Lock()
+			jsonOut.Lock()
 			jsonOut.b = jsonTmp
-			jsonOut.m.Unlock()
+			jsonOut.Unlock()
 		}
 	}()
 
 	http.HandleFunc("/api/v1/servers", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		jsonOut.m.RLock()
+		jsonOut.RLock()
 		w.Write(jsonOut.b)
-		jsonOut.m.RUnlock()
+		jsonOut.RUnlock()
 	})
 
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
