@@ -12,10 +12,10 @@ import (
 	"encoding/csv"
 	"encoding/json"
 	"flag"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
@@ -45,7 +45,7 @@ func main() {
 	flag.IntVar(&keepalive, "keepalive", 3, "Keep server alive for N tries")
 	flag.Parse()
 
-	jsonFile, err := ioutil.ReadFile(config)
+	jsonFile, err := os.ReadFile(config)
 	if err != nil {
 		panic(err)
 	}
