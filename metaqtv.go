@@ -1,4 +1,4 @@
-// Copyright (C) 2019 Florian Zwoch <fzwoch@gmail.com>
+// Copyright (C) 2019-2022 Florian Zwoch <fzwoch@gmail.com>
 //
 // see https://github.com/eb/metaqtv
 // for jogi - get well soon <3
@@ -21,6 +21,52 @@ import (
 	"sync"
 	"time"
 )
+
+type serverItem struct {
+	Hostname  string
+	IPAddress string `json:"IpAddress"`
+	Port      uint16
+	Link      string
+	Players   []struct {
+		Name string
+	}
+
+	keepaliveCount int
+}
+
+type serverItemV2 struct {
+	IPAddress     string `json:"IpAddress"`
+	Address       string
+	Description   string
+	Title         string
+	Port          uint16
+	Country       string
+	IsProxy       bool
+	Map           string
+	MaxClients    int
+	MaxSpectators int
+	Settings      map[string]string
+	QtvOnly       bool
+	Players       []struct {
+		Colors [2]int
+		Frags  int
+		Ping   int
+		Spec   bool
+		Name   string
+		Team   string
+		Time   int
+		IsBot  bool
+		Flag   string
+	}
+	QTV []struct {
+		Host     string
+		Address  string
+		Specs    int
+		SpecList []string
+	}
+
+	keepaliveCount int
+}
 
 var charset = [...]byte{
 	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
@@ -69,24 +115,21 @@ func main() {
 		b: []byte("{}"),
 	}
 
+	jsonOutV2 := struct {
+		sync.RWMutex
+		b []byte
+	}{
+		b: []byte("{}"),
+	}
+
 	go func() {
 		type host struct {
 			IP   [4]byte
 			Port uint16
 		}
 
-		type serverItem struct {
-			Hostname       string
-			IPAddress      string `json:"IpAddress"`
-			Port           uint16
-			Link           string
-			keepaliveCount int
-			Players        []struct {
-				Name string
-			}
-		}
-
 		allServers := make(map[host]serverItem)
+		allServersV2 := make(map[host]serverItemV2)
 
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
 
@@ -251,20 +294,83 @@ func main() {
 						return
 					}
 
+					scanner := bufio.NewScanner(strings.NewReader(string(data[6:s])))
+					scanner.Scan()
+
+					settings := strings.FieldsFunc(scanner.Text(), func(r rune) bool {
+						if r == '\\' {
+							return true
+						}
+						return false
+					})
+
 					qtv := serverItem{
-						Hostname:       ip.String(),
-						IPAddress:      ip.String(),
-						Port:           server.Port,
-						Link:           "http://" + strings.TrimLeft(strings.TrimLeft(fields[3], "1234567890"), "@") + "/watch.qtv?sid=" + strings.Split(fields[3], "@")[0],
-						keepaliveCount: keepalive,
+						Hostname:  ip.String(),
+						IPAddress: ip.String(),
+						Port:      server.Port,
+						Link:      "http://" + strings.TrimLeft(strings.TrimLeft(fields[3], "1234567890"), "@") + "/watch.qtv?sid=" + strings.Split(fields[3], "@")[0],
 						Players: make([]struct {
 							Name string
 						}, 0),
+						keepaliveCount: keepalive,
 					}
 
-					scanner := bufio.NewScanner(strings.NewReader(string(data[6:s])))
+					qtvV2 := serverItemV2{
+						IPAddress:   ip.String(),
+						Address:     ip.String() + ":" + strconv.Itoa(int(server.Port)),
+						Description: "",
+						Title:       "",
+						Port:        server.Port,
+						Settings:    map[string]string{},
+						Players: make([]struct {
+							Colors [2]int
+							Frags  int
+							Ping   int
+							Spec   bool
+							Name   string
+							Team   string
+							Time   int
+							IsBot  bool
+							Flag   string
+						}, 0),
+						QTV: make([]struct {
+							Host     string
+							Address  string
+							Specs    int
+							SpecList []string
+						}, 0),
+						keepaliveCount: keepalive,
+					}
 
-					scanner.Scan()
+					qtvV2.QTV = append(qtvV2.QTV, struct {
+						Host     string
+						Address  string
+						Specs    int
+						SpecList []string
+					}{
+						Host:     fields[2],
+						Address:  fields[3],
+						SpecList: make([]string, 0),
+					})
+
+					for i := 0; i < len(settings)-1; i += 2 {
+						qtvV2.Settings[settings[i]] = settings[i+1]
+					}
+
+					if val, ok := qtvV2.Settings["hostname"]; ok {
+						qtvV2.Title = val
+					}
+					if val, ok := qtvV2.Settings["map"]; ok {
+						qtvV2.Map = val
+					}
+					if val, ok := qtvV2.Settings["maxclients"]; ok {
+						n, _ := strconv.Atoi(val)
+						qtvV2.MaxClients = n
+					}
+					if val, ok := qtvV2.Settings["maxspectators"]; ok {
+						n, _ := strconv.Atoi(val)
+						qtvV2.MaxSpectators = n
+					}
 
 					for scanner.Scan() {
 						r := csv.NewReader(strings.NewReader(scanner.Text()))
@@ -280,10 +386,14 @@ func main() {
 							continue
 						}
 
-						player[4] = strings.TrimPrefix(player[4], "\\s\\")
-
-						if player[4] == "[ServeMe]" {
+						if strings.HasSuffix(player[4], "[ServeMe]") {
 							continue
+						}
+
+						var spec bool
+						if strings.HasPrefix(player[4], "\\s\\") {
+							player[4] = strings.TrimPrefix(player[4], "\\s\\")
+							spec = true
 						}
 
 						name := []byte(player[4])
@@ -298,16 +408,78 @@ func main() {
 
 						qtv.Players = append(qtv.Players, struct {
 							Name string
-						}{Name: strings.TrimSpace(string(name))})
+						}{
+							Name: strings.TrimSpace(string(name)),
+						})
+
+						frags, _ := strconv.Atoi(player[1])
+						time, _ := strconv.Atoi(player[2])
+						ping, _ := strconv.Atoi(player[3])
+						colorTop, _ := strconv.Atoi(player[6])
+						colorBottom, _ := strconv.Atoi(player[7])
+
+						if spec {
+							ping = -ping
+						}
+
+						qtvV2.Players = append(qtvV2.Players, struct {
+							Colors [2]int
+							Frags  int
+							Ping   int
+							Spec   bool
+							Name   string
+							Team   string
+							Time   int
+							IsBot  bool
+							Flag   string
+						}{
+							Colors: [2]int{colorTop, colorBottom},
+							Frags:  frags,
+							Ping:   ping,
+							Spec:   spec,
+							Name:   player[4],
+							Team:   player[8],
+							Time:   time,
+						})
 					}
 
 					m.Lock()
 					allServers[server] = qtv
+					allServersV2[server] = qtvV2
 					m.Unlock()
 				}(server)
 			}
 
 			wg.Wait()
+
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+
+				jsonServersV2 := make([]serverItemV2, 0)
+
+				for key, server := range allServersV2 {
+					if server.keepaliveCount <= 0 {
+						delete(allServersV2, key)
+						continue
+					}
+
+					server.keepaliveCount--
+
+					jsonServersV2 = append(jsonServersV2, server)
+
+					allServersV2[key] = server
+				}
+
+				jsonTmp, err := json.MarshalIndent(jsonServersV2, "", "\t")
+				if err != nil {
+					panic(err)
+				}
+
+				jsonOutV2.Lock()
+				jsonOutV2.b = jsonTmp
+				jsonOutV2.Unlock()
+			}()
 
 			jsonServers := struct {
 				Servers [1]struct {
@@ -348,6 +520,8 @@ func main() {
 			jsonOut.Lock()
 			jsonOut.b = jsonTmp
 			jsonOut.Unlock()
+
+			wg.Wait()
 		}
 	}()
 
@@ -357,6 +531,14 @@ func main() {
 		jsonOut.RLock()
 		w.Write(jsonOut.b)
 		jsonOut.RUnlock()
+	})
+
+	http.HandleFunc("/api/v2/servers", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+
+		jsonOutV2.RLock()
+		w.Write(jsonOutV2.b)
+		jsonOutV2.RUnlock()
 	})
 
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
