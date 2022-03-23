@@ -8,6 +8,7 @@ package main
 import (
 	"bufio"
 	"bytes"
+	"compress/gzip"
 	"encoding/binary"
 	"encoding/csv"
 	"encoding/json"
@@ -108,18 +109,27 @@ func main() {
 		panic(err)
 	}
 
+	b := bytes.NewBuffer(make([]byte, 0))
+	w := gzip.NewWriter(b)
+	w.Write([]byte("{}"))
+	w.Close()
+
 	jsonOut := struct {
 		sync.RWMutex
 		b []byte
+		z []byte
 	}{
 		b: []byte("{}"),
+		z: b.Bytes(),
 	}
 
 	jsonOutV2 := struct {
 		sync.RWMutex
 		b []byte
+		z []byte
 	}{
 		b: []byte("{}"),
+		z: b.Bytes(),
 	}
 
 	go func() {
@@ -476,8 +486,14 @@ func main() {
 					panic(err)
 				}
 
+				b := bytes.NewBuffer(make([]byte, 0))
+				w := gzip.NewWriter(b)
+				w.Write(jsonTmp)
+				w.Close()
+
 				jsonOutV2.Lock()
 				jsonOutV2.b = jsonTmp
+				jsonOutV2.z = b.Bytes()
 				jsonOutV2.Unlock()
 			}()
 
@@ -517,8 +533,14 @@ func main() {
 				panic(err)
 			}
 
+			b := bytes.NewBuffer(make([]byte, 0))
+			w := gzip.NewWriter(b)
+			w.Write(jsonTmp)
+			w.Close()
+
 			jsonOut.Lock()
 			jsonOut.b = jsonTmp
+			jsonOut.z = b.Bytes()
 			jsonOut.Unlock()
 
 			wg.Wait()
@@ -529,7 +551,14 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 
 		jsonOut.RLock()
-		w.Write(jsonOut.b)
+
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			w.Header().Set("Content-Encoding", "gzip")
+			w.Write(jsonOut.z)
+		} else {
+			w.Write(jsonOut.b)
+		}
+
 		jsonOut.RUnlock()
 	})
 
@@ -537,7 +566,14 @@ func main() {
 		w.Header().Set("Content-Type", "application/json")
 
 		jsonOutV2.RLock()
-		w.Write(jsonOutV2.b)
+
+		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
+			w.Header().Set("Content-Encoding", "gzip")
+			w.Write(jsonOutV2.z)
+		} else {
+			w.Write(jsonOutV2.b)
+		}
+
 		jsonOutV2.RUnlock()
 	})
 
