@@ -577,19 +577,19 @@ func gzipCompress(data []byte) []byte {
 	return buffer.Bytes()
 }
 
-func getApiCallback(store *jsonStore) func(w http.ResponseWriter, r *http.Request) {
-	return func(writer http.ResponseWriter, req *http.Request) {
-		writer.Header().Set("Content-Type", "application/json")
+func getApiCallback(store *jsonStore) func(response http.ResponseWriter, request *http.Request) {
+	return func(response http.ResponseWriter, request *http.Request) {
+		response.Header().Set("Content-Type", "application/json")
 
-		acceptsGzipEncoding := strings.Contains(req.Header.Get("Accept-Encoding"), "gzip")
+		acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
 
 		store.RLock()
 
 		if acceptsGzipEncoding {
-			writer.Header().Set("Content-Encoding", "gzip")
-			writer.Write(gzipCompress(store.data))
+			response.Header().Set("Content-Encoding", "gzip")
+			response.Write(gzipCompress(store.data))
 		} else {
-			writer.Write(store.data)
+			response.Write(store.data)
 		}
 
 		store.RUnlock()
