@@ -94,6 +94,11 @@ func (store *MutexStore) Read() []byte {
 	return data
 }
 
+func newMutexStore() *MutexStore {
+	store := MutexStore{data: make([]byte, 0)}
+	return &store
+}
+
 func main() {
 	var (
 		port           int
@@ -129,8 +134,8 @@ func main() {
 		panic(err)
 	}
 
-	jsonOutV1 := MutexStore{data: make([]byte, 0)}
-	jsonOutV2 := MutexStore{data: make([]byte, 0)}
+	jsonOutV1 := newMutexStore()
+	jsonOutV2 := newMutexStore()
 
 	go func() {
 		type host struct {
@@ -567,8 +572,8 @@ func main() {
 		}
 	}()
 
-	http.HandleFunc("/api/v1/servers", getApiCallback(&jsonOutV1))
-	http.HandleFunc("/api/v2/servers", getApiCallback(&jsonOutV2))
+	http.HandleFunc("/api/v1/servers", getApiCallback(jsonOutV1))
+	http.HandleFunc("/api/v2/servers", getApiCallback(jsonOutV2))
 
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
