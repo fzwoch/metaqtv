@@ -152,38 +152,41 @@ func main() {
 
 		for ; true; <-ticker.C {
 			var (
-				wg sync.WaitGroup
-				m  sync.Mutex
+				wg    sync.WaitGroup
+				mutex sync.Mutex
 			)
 
 			servers := make(map[host]struct{})
 
+			bufferMaxSize := 8192
 			for _, master := range masterServers {
 				wg.Add(1)
 
 				go func(master masterServer) {
 					defer wg.Done()
 
-					c, err := net.Dial("udp4", master.Hostname+":"+strconv.Itoa(master.Port))
+					masterAddress := master.Hostname + ":" + strconv.Itoa(master.Port)
+					conn, err := net.Dial("udp4", masterAddress)
+
 					if err != nil {
 						log.Println(err)
 						return
 					}
-					defer c.Close()
+					defer conn.Close()
 
-					s := 0
-					data := make([]byte, 8192)
+					buffer := make([]byte, bufferMaxSize)
+					bufferLength := 0
 
 					for i := 0; i < retries; i++ {
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						_, err = c.Write([]byte{0x63, 0x0a, 0x00})
+						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						_, err = conn.Write([]byte{0x63, 0x0a, 0x00})
 						if err != nil {
 							log.Println(err)
 							return
 						}
 
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						s, err = c.Read(data)
+						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue
 						}
@@ -196,19 +199,19 @@ func main() {
 						return
 					}
 
-					if !bytes.Equal(data[:6], []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}) {
+					if !bytes.Equal(buffer[:6], []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}) {
 						log.Println(master.Hostname + ":" + strconv.Itoa(master.Port) + ": Response error")
 						return
 					}
 
-					r := bytes.NewReader(data[6:s])
+					reader := bytes.NewReader(buffer[6:bufferLength])
 
-					m.Lock()
+					mutex.Lock()
 
 					for {
 						var host host
 
-						err = binary.Read(r, binary.BigEndian, &host)
+						err = binary.Read(reader, binary.BigEndian, &host)
 						if err != nil {
 							break
 						}
@@ -216,7 +219,7 @@ func main() {
 						servers[host] = struct{}{}
 					}
 
-					m.Unlock()
+					mutex.Unlock()
 				}(master)
 			}
 
@@ -230,26 +233,26 @@ func main() {
 
 					ip := net.IPv4(server.IP[0], server.IP[1], server.IP[2], server.IP[3])
 
-					c, err := net.Dial("udp4", ip.String()+":"+strconv.Itoa(int(server.Port)))
+					conn, err := net.Dial("udp4", ip.String()+":"+strconv.Itoa(int(server.Port)))
 					if err != nil {
 						log.Println(err)
 						return
 					}
-					defer c.Close()
+					defer conn.Close()
 
-					s := 0
-					data := make([]byte, 8192)
+					buffer := make([]byte, bufferMaxSize)
+					bufferLength := 0
 
 					for i := 0; i < retries; i++ {
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
+						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						_, err = conn.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
 						if err != nil {
 							log.Println(err)
 							return
 						}
 
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						s, err = c.Read(data)
+						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue
 						}
@@ -263,16 +266,16 @@ func main() {
 						return
 					}
 
-					if !bytes.Equal(data[:8], []byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'}) {
+					if !bytes.Equal(buffer[:8], []byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'}) {
 						// some servers react to the specific "32" status message but will send the regular
 						// status message because they misunderstood our command.
 						return
 					}
 
-					r := csv.NewReader(strings.NewReader(string(data[5:s])))
-					r.Comma = ' '
+					reader := csv.NewReader(strings.NewReader(string(buffer[5:bufferLength])))
+					reader.Comma = ' '
 
-					fields, err := r.Read()
+					fields, err := reader.Read()
 					if err != nil {
 						log.Println(err)
 						return
@@ -285,15 +288,15 @@ func main() {
 					}
 
 					for i := 0; i < retries; i++ {
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						_, err = c.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a})
+						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						_, err = conn.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a})
 						if err != nil {
 							log.Println(err)
 							return
 						}
 
-						c.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						s, err = c.Read(data)
+						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue
 						}
@@ -306,12 +309,12 @@ func main() {
 						return
 					}
 
-					if !bytes.Equal(data[:6], []byte{0xff, 0xff, 0xff, 0xff, 'n', '\\'}) {
+					if !bytes.Equal(buffer[:6], []byte{0xff, 0xff, 0xff, 0xff, 'n', '\\'}) {
 						log.Println(ip.String() + ":" + strconv.Itoa(int(server.Port)) + ": Response error")
 						return
 					}
 
-					scanner := bufio.NewScanner(strings.NewReader(string(data[6:s])))
+					scanner := bufio.NewScanner(strings.NewReader(string(buffer[6:bufferLength])))
 					scanner.Scan()
 
 					settings := strings.FieldsFunc(scanner.Text(), func(r rune) bool {
@@ -403,10 +406,10 @@ func main() {
 					}
 
 					for scanner.Scan() {
-						r := csv.NewReader(strings.NewReader(scanner.Text()))
-						r.Comma = ' '
+						reader := csv.NewReader(strings.NewReader(scanner.Text()))
+						reader.Comma = ' '
 
-						player, err := r.Read()
+						player, err := reader.Read()
 						if err != nil {
 							log.Println(err)
 							return
@@ -496,10 +499,10 @@ func main() {
 						})
 					}
 
-					m.Lock()
+					mutex.Lock()
 					allServersV1[server] = qtv
 					allServersV2[server] = qtvV2
-					m.Unlock()
+					mutex.Unlock()
 				}(server)
 			}
 
