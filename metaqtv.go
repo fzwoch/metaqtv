@@ -76,15 +76,22 @@ var charset = [...]byte{
 	'[', ']', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', ' ', ' ', ' ',
 }
 
-type jsonStore struct {
+type MutexStore struct {
 	sync.RWMutex
 	data []byte
 }
 
-func (store *jsonStore) Write(data []byte) {
+func (store *MutexStore) Write(data []byte) {
 	store.Lock()
 	store.data = data
 	store.Unlock()
+}
+
+func (store *MutexStore) Read() []byte {
+	store.RLock()
+	data := store.data
+	store.RUnlock()
+	return data
 }
 
 func main() {
@@ -122,8 +129,8 @@ func main() {
 		panic(err)
 	}
 
-	jsonOutV1 := jsonStore{data: make([]byte, 0)}
-	jsonOutV2 := jsonStore{data: make([]byte, 0)}
+	jsonOutV1 := MutexStore{data: make([]byte, 0)}
+	jsonOutV2 := MutexStore{data: make([]byte, 0)}
 
 	go func() {
 		type host struct {
@@ -577,13 +584,10 @@ func gzipCompress(data []byte) []byte {
 	return buffer.Bytes()
 }
 
-func getApiCallback(store *jsonStore) func(response http.ResponseWriter, request *http.Request) {
+func getApiCallback(store *MutexStore) func(response http.ResponseWriter, request *http.Request) {
 	return func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Set("Content-Type", "application/json")
-
-		store.RLock()
-		responseData := store.data
-		store.RUnlock()
+		responseData := store.Read()
 
 		acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
 
