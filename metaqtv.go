@@ -99,6 +99,12 @@ func newMutexStore() *MutexStore {
 	return &store
 }
 
+func panicIf(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
 func main() {
 	var (
 		port           int
@@ -118,9 +124,7 @@ func main() {
 	flag.Parse()
 
 	jsonFile, err := os.ReadFile(config)
-	if err != nil {
-		panic(err)
-	}
+	panicIf(err)
 
 	type masterServer struct {
 		Hostname string `json:"hostname"`
@@ -130,9 +134,7 @@ func main() {
 	var masterServers []masterServer
 
 	err = json.Unmarshal(jsonFile, &masterServers)
-	if err != nil {
-		panic(err)
-	}
+	panicIf(err)
 
 	jsonOutV1 := newMutexStore()
 	jsonOutV2 := newMutexStore()
@@ -523,9 +525,7 @@ func main() {
 				}
 
 				jsonTmp, err := json.MarshalIndent(jsonServersV2, "", "\t")
-				if err != nil {
-					panic(err)
-				}
+				panicIf(err)
 
 				jsonOutV2.Write(jsonTmp)
 			}()
@@ -562,9 +562,7 @@ func main() {
 			jsonServers.ServerCount = len(jsonServers.Servers[0].GameStates)
 
 			jsonTmp, err := json.MarshalIndent(jsonServers, "", "\t")
-			if err != nil {
-				panic(err)
-			}
+			panicIf(err)
 
 			jsonOutV1.Write(jsonTmp)
 
@@ -576,16 +574,18 @@ func main() {
 	http.HandleFunc("/api/v2/servers", getApiCallback(jsonOutV2))
 
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
-	if err != nil {
-		panic(err)
-	}
+	panicIf(err)
 }
 
 func gzipCompress(data []byte) []byte {
 	buffer := bytes.NewBuffer(make([]byte, 0))
 	writer := gzip.NewWriter(buffer)
-	writer.Write(data)
-	writer.Close()
+	_, err := writer.Write(data)
+	panicIf(err)
+
+	err = writer.Close()
+	panicIf(err)
+
 	return buffer.Bytes()
 }
 
@@ -601,6 +601,7 @@ func getApiCallback(store *MutexStore) func(response http.ResponseWriter, reques
 			responseData = gzipCompress(responseData)
 		}
 
-		response.Write(responseData)
+		_, err := response.Write(responseData)
+		panicIf(err)
 	}
 }
