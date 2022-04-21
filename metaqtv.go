@@ -415,62 +415,56 @@ func main() {
 							return
 						}
 
-						if len(player) != 9 {
+						expectedPlayerColumnCount := 9
+
+						if len(player) != expectedPlayerColumnCount {
 							continue
 						}
 
-						if strings.HasSuffix(player[4], "[ServeMe]") {
+						indexFrags := 1
+						indexTime := 2
+						indexPing := 3
+						indexName := 4
+						indexColorTop := 6
+						indexColorBottom := 7
+						indexTeam := 8
+
+						nameRawStr := player[indexName]
+						if strings.HasSuffix(nameRawStr, "[ServeMe]") {
 							continue
 						}
 
-						var spec bool
-						if strings.HasPrefix(player[4], "\\s\\") {
-							player[4] = strings.TrimPrefix(player[4], "\\s\\")
-							spec = true
+						var isSpec bool
+						spectatorPrefix := "\\s\\"
+						if strings.HasPrefix(nameRawStr, spectatorPrefix) {
+							nameRawStr = strings.TrimPrefix(nameRawStr, spectatorPrefix)
+							isSpec = true
 						}
 
 						var (
-							nameRaw []int
+							nameInt []int
 							teamRaw []int
 						)
 
-						name := []byte(player[4])
+						nameStr := quakeRawTextToString([]byte(nameRawStr))
+						nameInt = stringToIntArray(nameStr)
 
-						for i := range name {
-							nameRaw = append(nameRaw, int(name[i]))
-
-							name[i] &= 0x7f
-
-							if name[i] < byte(len(charset)) {
-								name[i] = charset[name[i]]
-							}
-						}
-
-						team := []byte(player[8])
-
-						for i := range team {
-							teamRaw = append(teamRaw, int(team[i]))
-
-							team[i] &= 0x7f
-
-							if team[i] < byte(len(charset)) {
-								team[i] = charset[team[i]]
-							}
-						}
+						teamStr := quakeRawTextToString([]byte(player[indexTeam]))
+						teamRaw = stringToIntArray(teamStr)
 
 						qtv.Players = append(qtv.Players, struct {
 							Name string
 						}{
-							Name: strings.TrimSpace(string(name)),
+							Name: nameStr,
 						})
 
-						frags, _ := strconv.Atoi(player[1])
-						time_, _ := strconv.Atoi(player[2])
-						ping, _ := strconv.Atoi(player[3])
-						colorTop, _ := strconv.Atoi(player[6])
-						colorBottom, _ := strconv.Atoi(player[7])
+						frags, _ := strconv.Atoi(player[indexFrags])
+						time_, _ := strconv.Atoi(player[indexTime])
+						ping, _ := strconv.Atoi(player[indexPing])
+						colorTop, _ := strconv.Atoi(player[indexColorTop])
+						colorBottom, _ := strconv.Atoi(player[indexColorBottom])
 
-						if spec {
+						if isSpec {
 							ping = -ping
 						}
 
@@ -490,10 +484,10 @@ func main() {
 							Colors:  [2]int{colorTop, colorBottom},
 							Frags:   frags,
 							Ping:    ping,
-							Spec:    spec,
-							Name:    strings.TrimSpace(string(name)),
-							NameRaw: nameRaw,
-							Team:    strings.TrimSpace(string(team)),
+							Spec:    isSpec,
+							Name:    nameStr,
+							NameRaw: nameInt,
+							Team:    teamStr,
 							TeamRaw: teamRaw,
 							Time:    time_,
 						})
@@ -607,4 +601,28 @@ func getApiCallback(store *MutexStore) func(response http.ResponseWriter, reques
 		_, err := response.Write(responseData)
 		panicIf(err)
 	}
+}
+
+func quakeRawTextToString(value []byte) string {
+	plainRawText := value
+
+	for i := range value {
+		plainRawText[i] &= 0x7f
+
+		if value[i] < byte(len(charset)) {
+			plainRawText[i] = charset[value[i]]
+		}
+	}
+
+	return strings.TrimSpace(string(plainRawText))
+}
+
+func stringToIntArray(value string) []int {
+	intText := make([]int, len(value))
+
+	for i := range value {
+		intText[i] = int(value[i])
+	}
+
+	return intText
 }
