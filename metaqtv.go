@@ -455,7 +455,7 @@ func main() {
 						})
 
 						frags, _ := strconv.Atoi(player[1])
-						time, _ := strconv.Atoi(player[2])
+						time_, _ := strconv.Atoi(player[2])
 						ping, _ := strconv.Atoi(player[3])
 						colorTop, _ := strconv.Atoi(player[6])
 						colorBottom, _ := strconv.Atoi(player[7])
@@ -485,7 +485,7 @@ func main() {
 							NameRaw: nameRaw,
 							Team:    strings.TrimSpace(string(team)),
 							TeamRaw: teamRaw,
-							Time:    time,
+							Time:    time_,
 						})
 					}
 
