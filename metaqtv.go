@@ -78,8 +78,7 @@ var charset = [...]byte{
 
 type jsonStore struct {
 	sync.RWMutex
-	b []byte
-	z []byte
+	data []byte
 }
 
 func main() {
@@ -117,20 +116,8 @@ func main() {
 		panic(err)
 	}
 
-	b := bytes.NewBuffer(make([]byte, 0))
-	w := gzip.NewWriter(b)
-	w.Write([]byte("{}"))
-	w.Close()
-
-	jsonOutV1 := jsonStore{
-		b: []byte("{}"),
-		z: b.Bytes(),
-	}
-
-	jsonOutV2 := jsonStore{
-		b: []byte("{}"),
-		z: b.Bytes(),
-	}
+	jsonOutV1 := jsonStore{data: make([]byte, 0)}
+	jsonOutV2 := jsonStore{data: make([]byte, 0)}
 
 	go func() {
 		type host struct {
@@ -522,14 +509,8 @@ func main() {
 					panic(err)
 				}
 
-				b := bytes.NewBuffer(make([]byte, 0))
-				w := gzip.NewWriter(b)
-				w.Write(jsonTmp)
-				w.Close()
-
 				jsonOutV2.Lock()
-				jsonOutV2.b = jsonTmp
-				jsonOutV2.z = b.Bytes()
+				jsonOutV2.data = jsonTmp
 				jsonOutV2.Unlock()
 			}()
 
@@ -569,22 +550,16 @@ func main() {
 				panic(err)
 			}
 
-			b := bytes.NewBuffer(make([]byte, 0))
-			w := gzip.NewWriter(b)
-			w.Write(jsonTmp)
-			w.Close()
-
 			jsonOutV1.Lock()
-			jsonOutV1.b = jsonTmp
-			jsonOutV1.z = b.Bytes()
+			jsonOutV1.data = jsonTmp
 			jsonOutV1.Unlock()
 
 			wg.Wait()
 		}
 	}()
 
-	http.HandleFunc("/api/v1/servers", getServerApiRequestCallback(&jsonOutV1))
-	http.HandleFunc("/api/v2/servers", getServerApiRequestCallback(&jsonOutV2))
+	http.HandleFunc("/api/v1/servers", getApiCallback(&jsonOutV1))
+	http.HandleFunc("/api/v2/servers", getApiCallback(&jsonOutV2))
 
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
@@ -610,9 +585,9 @@ func getApiCallback(store *jsonStore) func(w http.ResponseWriter, r *http.Reques
 
 		if acceptsGzipEncoding {
 			writer.Header().Set("Content-Encoding", "gzip")
-			writer.Write(store.z)
+			writer.Write(gzipCompress(store.data))
 		} else {
-			writer.Write(store.b)
+			writer.Write(store.data)
 		}
 
 		store.RUnlock()
