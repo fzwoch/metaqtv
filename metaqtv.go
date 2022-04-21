@@ -49,15 +49,17 @@ type serverItemV2 struct {
 	Settings      map[string]string
 	QtvOnly       bool
 	Players       []struct {
-		Colors [2]int
-		Frags  int
-		Ping   int
-		Spec   bool
-		Name   string
-		Team   string
-		Time   int
-		IsBot  bool
-		Flag   string
+		Colors  [2]int
+		Frags   int
+		Ping    int
+		Spec    bool
+		Name    string
+		NameRaw []int
+		Team    string
+		TeamRaw []int
+		Time    int
+		IsBot   bool
+		Flag    string
 	}
 	QTV []struct {
 		Host     string
@@ -333,15 +335,17 @@ func main() {
 						Port:        server.Port,
 						Settings:    map[string]string{},
 						Players: make([]struct {
-							Colors [2]int
-							Frags  int
-							Ping   int
-							Spec   bool
-							Name   string
-							Team   string
-							Time   int
-							IsBot  bool
-							Flag   string
+							Colors  [2]int
+							Frags   int
+							Ping    int
+							Spec    bool
+							Name    string
+							NameRaw []int
+							Team    string
+							TeamRaw []int
+							Time    int
+							IsBot   bool
+							Flag    string
 						}, 0),
 						QTV: make([]struct {
 							Host     string
@@ -368,7 +372,18 @@ func main() {
 					}
 
 					if val, ok := qtvV2.Settings["hostname"]; ok {
-						qtvV2.Title = val
+						hostname := []byte(val)
+
+						for i := range hostname {
+							hostname[i] &= 0x7f
+
+							if hostname[i] < byte(len(charset)) {
+								hostname[i] = charset[hostname[i]]
+							}
+						}
+
+						qtvV2.Settings["hostname"] = strings.TrimSpace(string(hostname))
+						qtvV2.Title = qtvV2.Settings["hostname"]
 					}
 					if val, ok := qtvV2.Settings["map"]; ok {
 						qtvV2.Map = val
@@ -406,13 +421,32 @@ func main() {
 							spec = true
 						}
 
+						var (
+							nameRaw []int
+							teamRaw []int
+						)
+
 						name := []byte(player[4])
 
 						for i := range name {
+							nameRaw = append(nameRaw, int(name[i]))
+
 							name[i] &= 0x7f
 
 							if name[i] < byte(len(charset)) {
 								name[i] = charset[name[i]]
+							}
+						}
+
+						team := []byte(player[8])
+
+						for i := range team {
+							teamRaw = append(teamRaw, int(team[i]))
+
+							team[i] &= 0x7f
+
+							if team[i] < byte(len(charset)) {
+								team[i] = charset[team[i]]
 							}
 						}
 
@@ -433,23 +467,27 @@ func main() {
 						}
 
 						qtvV2.Players = append(qtvV2.Players, struct {
-							Colors [2]int
-							Frags  int
-							Ping   int
-							Spec   bool
-							Name   string
-							Team   string
-							Time   int
-							IsBot  bool
-							Flag   string
+							Colors  [2]int
+							Frags   int
+							Ping    int
+							Spec    bool
+							Name    string
+							NameRaw []int
+							Team    string
+							TeamRaw []int
+							Time    int
+							IsBot   bool
+							Flag    string
 						}{
-							Colors: [2]int{colorTop, colorBottom},
-							Frags:  frags,
-							Ping:   ping,
-							Spec:   spec,
-							Name:   player[4],
-							Team:   player[8],
-							Time:   time,
+							Colors:  [2]int{colorTop, colorBottom},
+							Frags:   frags,
+							Ping:    ping,
+							Spec:    spec,
+							Name:    strings.TrimSpace(string(name)),
+							NameRaw: nameRaw,
+							Team:    strings.TrimSpace(string(team)),
+							TeamRaw: teamRaw,
+							Time:    time,
 						})
 					}
 
