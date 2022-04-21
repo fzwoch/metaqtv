@@ -105,6 +105,14 @@ func panicIf(err error) {
 	}
 }
 
+const ColFrags int = 1
+const ColTime int = 2
+const ColPing int = 3
+const ColName int = 4
+const ColColorTop int = 6
+const ColColorBottom int = 7
+const ColTeam int = 8
+
 func main() {
 	var (
 		port           int
@@ -421,15 +429,7 @@ func main() {
 							continue
 						}
 
-						indexFrags := 1
-						indexTime := 2
-						indexPing := 3
-						indexName := 4
-						indexColorTop := 6
-						indexColorBottom := 7
-						indexTeam := 8
-
-						nameRawStr := player[indexName]
+						nameRawStr := player[ColName]
 						if strings.HasSuffix(nameRawStr, "[ServeMe]") {
 							continue
 						}
@@ -449,7 +449,7 @@ func main() {
 						nameStr := quakeRawTextToString([]byte(nameRawStr))
 						nameInt = stringToIntArray(nameStr)
 
-						teamStr := quakeRawTextToString([]byte(player[indexTeam]))
+						teamStr := quakeRawTextToString([]byte(player[ColTeam]))
 						teamRaw = stringToIntArray(teamStr)
 
 						qtv.Players = append(qtv.Players, struct {
@@ -458,11 +458,11 @@ func main() {
 							Name: nameStr,
 						})
 
-						frags, _ := strconv.Atoi(player[indexFrags])
-						time_, _ := strconv.Atoi(player[indexTime])
-						ping, _ := strconv.Atoi(player[indexPing])
-						colorTop, _ := strconv.Atoi(player[indexColorTop])
-						colorBottom, _ := strconv.Atoi(player[indexColorBottom])
+						frags, _ := strconv.Atoi(player[ColFrags])
+						time_, _ := strconv.Atoi(player[ColTime])
+						ping, _ := strconv.Atoi(player[ColPing])
+						colorTop, _ := strconv.Atoi(player[ColColorTop])
+						colorBottom, _ := strconv.Atoi(player[ColColorBottom])
 
 						if isSpec {
 							ping = -ping
