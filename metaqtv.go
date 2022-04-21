@@ -81,6 +81,12 @@ type jsonStore struct {
 	data []byte
 }
 
+func (store *jsonStore) Save(data []byte) {
+	store.Lock()
+	store.data = data
+	store.Unlock()
+}
+
 func main() {
 	var (
 		port           int
@@ -509,9 +515,7 @@ func main() {
 					panic(err)
 				}
 
-				jsonOutV2.Lock()
-				jsonOutV2.data = jsonTmp
-				jsonOutV2.Unlock()
+				jsonOutV2.Save(jsonTmp)
 			}()
 
 			jsonServers := struct {
@@ -550,9 +554,7 @@ func main() {
 				panic(err)
 			}
 
-			jsonOutV1.Lock()
-			jsonOutV1.data = jsonTmp
-			jsonOutV1.Unlock()
+			jsonOutV1.Save(jsonTmp)
 
 			wg.Wait()
 		}
