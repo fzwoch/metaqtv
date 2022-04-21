@@ -581,17 +581,17 @@ func getApiCallback(store *jsonStore) func(response http.ResponseWriter, request
 	return func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Set("Content-Type", "application/json")
 
-		acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
-
 		store.RLock()
+		responseData := store.data
+		store.RUnlock()
+
+		acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
 
 		if acceptsGzipEncoding {
 			response.Header().Set("Content-Encoding", "gzip")
-			response.Write(gzipCompress(store.data))
-		} else {
-			response.Write(store.data)
+			responseData = gzipCompress(responseData)
 		}
 
-		store.RUnlock()
+		response.Write(responseData)
 	}
 }
