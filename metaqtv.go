@@ -23,7 +23,7 @@ import (
 	"time"
 )
 
-type serverItem struct {
+type serverItemV1 struct {
 	Hostname  string
 	IPAddress string `json:"IpAddress"`
 	Port      uint16
@@ -116,7 +116,7 @@ func main() {
 	w.Write([]byte("{}"))
 	w.Close()
 
-	jsonOut := struct {
+	jsonOutV1 := struct {
 		sync.RWMutex
 		b []byte
 		z []byte
@@ -140,7 +140,7 @@ func main() {
 			Port uint16
 		}
 
-		allServers := make(map[host]serverItem)
+		allServersV1 := make(map[host]serverItemV1)
 		allServersV2 := make(map[host]serverItemV2)
 
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
@@ -316,7 +316,7 @@ func main() {
 						return false
 					})
 
-					qtv := serverItem{
+					qtv := serverItemV1{
 						Hostname:  ip.String(),
 						IPAddress: ip.String(),
 						Port:      server.Port,
@@ -492,7 +492,7 @@ func main() {
 					}
 
 					m.Lock()
-					allServers[server] = qtv
+					allServersV1[server] = qtv
 					allServersV2[server] = qtvV2
 					m.Unlock()
 				}(server)
@@ -537,7 +537,7 @@ func main() {
 
 			jsonServers := struct {
 				Servers [1]struct {
-					GameStates []serverItem
+					GameStates []serverItemV1
 				}
 				ServerCount       int
 				ActiveServerCount int
@@ -547,9 +547,9 @@ func main() {
 				ObserverCount: -1,
 			}
 
-			for key, server := range allServers {
+			for key, server := range allServersV1 {
 				if server.keepaliveCount <= 0 {
-					delete(allServers, key)
+					delete(allServersV1, key)
 					continue
 				}
 
@@ -561,7 +561,7 @@ func main() {
 				}
 				jsonServers.Servers[0].GameStates = append(jsonServers.Servers[0].GameStates, server)
 
-				allServers[key] = server
+				allServersV1[key] = server
 			}
 
 			jsonServers.ServerCount = len(jsonServers.Servers[0].GameStates)
@@ -576,10 +576,10 @@ func main() {
 			w.Write(jsonTmp)
 			w.Close()
 
-			jsonOut.Lock()
-			jsonOut.b = jsonTmp
-			jsonOut.z = b.Bytes()
-			jsonOut.Unlock()
+			jsonOutV1.Lock()
+			jsonOutV1.b = jsonTmp
+			jsonOutV1.z = b.Bytes()
+			jsonOutV1.Unlock()
 
 			wg.Wait()
 		}
@@ -588,16 +588,16 @@ func main() {
 	http.HandleFunc("/api/v1/servers", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 
-		jsonOut.RLock()
+		jsonOutV1.RLock()
 
 		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
 			w.Header().Set("Content-Encoding", "gzip")
-			w.Write(jsonOut.z)
+			w.Write(jsonOutV1.z)
 		} else {
-			w.Write(jsonOut.b)
+			w.Write(jsonOutV1.b)
 		}
 
-		jsonOut.RUnlock()
+		jsonOutV1.RUnlock()
 	})
 
 	http.HandleFunc("/api/v2/servers", func(w http.ResponseWriter, r *http.Request) {
