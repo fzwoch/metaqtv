@@ -76,6 +76,12 @@ var charset = [...]byte{
 	'[', ']', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', ' ', ' ', ' ',
 }
 
+type jsonStore struct {
+	sync.RWMutex
+	b []byte
+	z []byte
+}
+
 func main() {
 	var (
 		port           int
@@ -116,20 +122,12 @@ func main() {
 	w.Write([]byte("{}"))
 	w.Close()
 
-	jsonOutV1 := struct {
-		sync.RWMutex
-		b []byte
-		z []byte
-	}{
+	jsonOutV1 := jsonStore{
 		b: []byte("{}"),
 		z: b.Bytes(),
 	}
 
-	jsonOutV2 := struct {
-		sync.RWMutex
-		b []byte
-		z []byte
-	}{
+	jsonOutV2 := jsonStore{
 		b: []byte("{}"),
 		z: b.Bytes(),
 	}
