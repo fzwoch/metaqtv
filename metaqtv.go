@@ -583,38 +583,28 @@ func main() {
 		}
 	}()
 
-	http.HandleFunc("/api/v1/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		jsonOutV1.RLock()
-
-		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			w.Header().Set("Content-Encoding", "gzip")
-			w.Write(jsonOutV1.z)
-		} else {
-			w.Write(jsonOutV1.b)
-		}
-
-		jsonOutV1.RUnlock()
-	})
-
-	http.HandleFunc("/api/v2/servers", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "application/json")
-
-		jsonOutV2.RLock()
-
-		if strings.Contains(r.Header.Get("Accept-Encoding"), "gzip") {
-			w.Header().Set("Content-Encoding", "gzip")
-			w.Write(jsonOutV2.z)
-		} else {
-			w.Write(jsonOutV2.b)
-		}
-
-		jsonOutV2.RUnlock()
-	})
+	http.HandleFunc("/api/v1/servers", getServerApiRequestCallback(&jsonOutV1))
+	http.HandleFunc("/api/v2/servers", getServerApiRequestCallback(&jsonOutV2))
 
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func getServerApiRequestCallback(store *jsonStore) func(w http.ResponseWriter, r *http.Request) {
+	return func(writer http.ResponseWriter, req *http.Request) {
+		writer.Header().Set("Content-Type", "application/json")
+
+		store.RLock()
+
+		if strings.Contains(req.Header.Get("Accept-Encoding"), "gzip") {
+			writer.Header().Set("Content-Encoding", "gzip")
+			writer.Write(store.z)
+		} else {
+			writer.Write(store.b)
+		}
+
+		store.RUnlock()
 	}
 }
