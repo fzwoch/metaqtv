@@ -592,7 +592,15 @@ func main() {
 	}
 }
 
-func getServerApiRequestCallback(store *jsonStore) func(w http.ResponseWriter, r *http.Request) {
+func gzipCompress(data []byte) []byte {
+	buffer := bytes.NewBuffer(make([]byte, 0))
+	writer := gzip.NewWriter(buffer)
+	writer.Write(data)
+	writer.Close()
+	return buffer.Bytes()
+}
+
+func getApiCallback(store *jsonStore) func(w http.ResponseWriter, r *http.Request) {
 	return func(writer http.ResponseWriter, req *http.Request) {
 		writer.Header().Set("Content-Type", "application/json")
 
