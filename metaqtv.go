@@ -44,7 +44,7 @@ func main() {
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
 	flag.IntVar(&timeout, "timeout", 500, "UDP timeout in milliseconds")
 	flag.IntVar(&retries, "retry", 5, "UDP retry count")
-	flag.StringVar(&config, "config", "metaqtv.json", "Master server config file")
+	flag.StringVar(&config, "config", "master_servers.json", "Master server config file")
 	flag.IntVar(&keepalive, "keepalive", 3, "Keep server alive for N tries")
 	flag.Parse()
 
