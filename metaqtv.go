@@ -24,24 +24,29 @@ import (
 )
 
 type Player struct {
-	Colors  [2]int
-	Frags   int
-	Ping    int
-	Spec    bool
 	Name    string
 	NameRaw []int
 	Team    string
 	TeamRaw []int
+	Colors  [2]int
+	Frags   int
+	Ping    int
+	Spec    bool
 	Time    int
 	IsBot   bool
-	Flag    string
+}
+
+type Spectator struct {
+	Name    string
+	NameRaw []int
+	IsBot   bool
 }
 
 type QTV struct {
-	Host     string
-	Address  string
-	Specs    int
-	SpecList []string
+	Host          string
+	Address       string
+	Numspectators int
+	Spectators    []string
 }
 
 type Server struct {
@@ -52,11 +57,15 @@ type Server struct {
 	Port          uint16
 	Country       string
 	Map           string
-	MaxClients    int
+	NumClients    int
+	MaxPlayers    int
+	NumPlayers    int
+	NumSpectators int
 	MaxSpectators int
 	Settings      map[string]string
 	QtvOnly       bool
 	Players       []Player
+	Spectators    []Spectator
 	QTV           []QTV
 
 	keepaliveCount int
@@ -329,9 +338,9 @@ func main() {
 					}
 
 					qtv.QTV = append(qtv.QTV, QTV{
-						Host:     fields[2],
-						Address:  fields[3],
-						SpecList: make([]string, 0),
+						Host:       fields[2],
+						Address:    fields[3],
+						Spectators: make([]string, 0),
 					})
 
 					for i := 0; i < len(settings)-1; i += 2 {
@@ -347,7 +356,7 @@ func main() {
 					}
 					if val, ok := qtv.Settings["maxclients"]; ok {
 						n, _ := strconv.Atoi(val)
-						qtv.MaxClients = n
+						qtv.MaxPlayers = n
 					}
 					if val, ok := qtv.Settings["maxspectators"]; ok {
 						n, _ := strconv.Atoi(val)
@@ -358,7 +367,7 @@ func main() {
 						reader := csv.NewReader(strings.NewReader(scanner.Text()))
 						reader.Comma = ' '
 
-						player, err := reader.Read()
+						client, err := reader.Read()
 						if err != nil {
 							log.Println(err)
 							return
@@ -366,54 +375,51 @@ func main() {
 
 						expectedPlayerColumnCount := 9
 
-						if len(player) != expectedPlayerColumnCount {
+						if len(client) != expectedPlayerColumnCount {
 							continue
 						}
 
-						nameRawStr := player[ColName]
+						nameRawStr := client[ColName]
 						if strings.HasSuffix(nameRawStr, "[ServeMe]") {
 							continue
 						}
 
-						var isSpec bool
+						var isSpec = false
 						spectatorPrefix := "\\s\\"
 						if strings.HasPrefix(nameRawStr, spectatorPrefix) {
 							nameRawStr = strings.TrimPrefix(nameRawStr, spectatorPrefix)
 							isSpec = true
 						}
 
-						var (
-							nameInt []int
-							teamRaw []int
-						)
-
-						nameStr := quakeTextToPlainText(nameRawStr)
-						nameInt = stringToIntArray(nameStr)
-
-						teamStr := quakeTextToPlainText(player[ColTeam])
-						teamRaw = stringToIntArray(teamStr)
-
-						frags, _ := strconv.Atoi(player[ColFrags])
-						time_, _ := strconv.Atoi(player[ColTime])
-						ping, _ := strconv.Atoi(player[ColPing])
-						colorTop, _ := strconv.Atoi(player[ColColorTop])
-						colorBottom, _ := strconv.Atoi(player[ColColorBottom])
+						name := quakeTextToPlainText(nameRawStr)
+						nameRaw := stringToIntArray(name)
+						team := quakeTextToPlainText(client[ColTeam])
+						teamRaw := stringToIntArray(team)
+						frags, _ := strconv.Atoi(client[ColFrags])
+						time_, _ := strconv.Atoi(client[ColTime])
+						ping, _ := strconv.Atoi(client[ColPing])
+						colorTop, _ := strconv.Atoi(client[ColColorTop])
+						colorBottom, _ := strconv.Atoi(client[ColColorBottom])
 
 						if isSpec {
-							ping = -ping
+							qtv.Players = append(qtv.Players, Player{
+								Name:    name,
+								NameRaw: nameRaw,
+								Team:    team,
+								TeamRaw: teamRaw,
+								Colors:  [2]int{colorTop, colorBottom},
+								Frags:   frags,
+								Ping:    ping,
+								Time:    time_,
+								IsBot:   false,
+							})
+						} else {
+							qtv.Spectators = append(qtv.Spectators, Spectator{
+								Name:    name,
+								NameRaw: nameRaw,
+								IsBot:   false,
+							})
 						}
-
-						qtv.Players = append(qtv.Players, Player{
-							Colors:  [2]int{colorTop, colorBottom},
-							Frags:   frags,
-							Ping:    ping,
-							Spec:    isSpec,
-							Name:    nameStr,
-							NameRaw: nameInt,
-							Team:    teamStr,
-							TeamRaw: teamRaw,
-							Time:    time_,
-						})
 					}
 
 					mutex.Lock()
