@@ -51,12 +51,7 @@ func main() {
 	jsonFile, err := os.ReadFile(config)
 	panicIf(err)
 
-	type masterServer struct {
-		Hostname string `json:"hostname"`
-		Port     int    `json:"port"`
-	}
-
-	var masterServers []masterServer
+	var masterServers []MasterServer
 
 	err = json.Unmarshal(jsonFile, &masterServers)
 	panicIf(err)
@@ -64,12 +59,8 @@ func main() {
 	jsonOutV2 := newMutexStore()
 
 	go func() {
-		type host struct {
-			IP   [4]byte
-			Port uint16
-		}
 
-		allServers := make(map[host]Server)
+		allServers := make(map[SocketAddress]Server)
 
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
 
@@ -79,13 +70,13 @@ func main() {
 				mutex sync.Mutex
 			)
 
-			servers := make(map[host]struct{})
+			servers := make(map[SocketAddress]struct{})
 
 			bufferMaxSize := 8192
 			for _, master := range masterServers {
 				wg.Add(1)
 
-				go func(master masterServer) {
+				go func(master MasterServer) {
 					defer wg.Done()
 
 					masterAddress := master.Hostname + ":" + strconv.Itoa(master.Port)
@@ -132,7 +123,7 @@ func main() {
 					mutex.Lock()
 
 					for {
-						var host host
+						var host SocketAddress
 
 						err = binary.Read(reader, binary.BigEndian, &host)
 						if err != nil {
@@ -151,10 +142,10 @@ func main() {
 			for server := range servers {
 				wg.Add(1)
 
-				go func(server host) {
+				go func(server SocketAddress) {
 					defer wg.Done()
 
-					ip := net.IPv4(server.IP[0], server.IP[1], server.IP[2], server.IP[3])
+					ip := net.IPv4(server.Ip[0], server.Ip[1], server.Ip[2], server.Ip[3])
 
 					conn, err := net.Dial("udp4", ip.String()+":"+strconv.Itoa(int(server.Port)))
 					if err != nil {

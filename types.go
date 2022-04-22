@@ -1,6 +1,8 @@
 package main
 
-import "sync"
+import (
+	"sync"
+)
 
 type Player struct {
 	Name    string
@@ -46,6 +48,15 @@ type Server struct {
 	QTV           []QTV
 
 	keepaliveCount int
+}
+
+type SocketAddress struct {
+	Ip   [4]byte
+	Port uint16
+}
+type MasterServer struct {
+	Hostname string `json:"hostname"`
+	Port     int    `json:"port"`
 }
 
 type MutexStore struct {
