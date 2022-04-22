@@ -292,7 +292,7 @@ func main() {
 						reader := csv.NewReader(strings.NewReader(scanner.Text()))
 						reader.Comma = ' '
 
-						client, err := reader.Read()
+						clientRecord, err := reader.Read()
 						if err != nil {
 							log.Println(err)
 							return
@@ -300,50 +300,24 @@ func main() {
 
 						expectedPlayerColumnCount := 9
 
-						if len(client) != expectedPlayerColumnCount {
+						if len(clientRecord) != expectedPlayerColumnCount {
 							continue
 						}
 
-						nameRawStr := client[ColName]
-						if strings.HasSuffix(nameRawStr, "[ServeMe]") {
+						client, err := parseClientRecord(clientRecord)
+
+						if err != nil {
 							continue
 						}
 
-						var isSpec = false
-						spectatorPrefix := "\\s\\"
-						if strings.HasPrefix(nameRawStr, spectatorPrefix) {
-							nameRawStr = strings.TrimPrefix(nameRawStr, spectatorPrefix)
-							isSpec = true
-						}
-
-						name := quakeTextToPlainText(nameRawStr)
-						nameRaw := stringToIntArray(name)
-						team := quakeTextToPlainText(client[ColTeam])
-						teamRaw := stringToIntArray(team)
-						frags, _ := strconv.Atoi(client[ColFrags])
-						time_, _ := strconv.Atoi(client[ColTime])
-						ping, _ := strconv.Atoi(client[ColPing])
-						colorTop, _ := strconv.Atoi(client[ColColorTop])
-						colorBottom, _ := strconv.Atoi(client[ColColorBottom])
-
-						if isSpec {
-							qtv.Players = append(qtv.Players, Player{
-								Name:    name,
-								NameRaw: nameRaw,
-								Team:    team,
-								TeamRaw: teamRaw,
-								Colors:  [2]int{colorTop, colorBottom},
-								Frags:   frags,
-								Ping:    ping,
-								Time:    time_,
-								IsBot:   false,
+						if client.IsSpec {
+							qtv.Spectators = append(qtv.Spectators, Spectator{
+								Name:    client.Name,
+								NameInt: client.NameInt,
+								IsBot:   client.IsBot,
 							})
 						} else {
-							qtv.Spectators = append(qtv.Spectators, Spectator{
-								Name:    name,
-								NameRaw: nameRaw,
-								IsBot:   false,
-							})
+							qtv.Players = append(qtv.Players, client.Player)
 						}
 					}
 

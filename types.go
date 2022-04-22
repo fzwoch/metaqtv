@@ -6,9 +6,9 @@ import (
 
 type Player struct {
 	Name    string
-	NameRaw []int
+	NameInt []int
 	Team    string
-	TeamRaw []int
+	TeamInt []int
 	Colors  [2]int
 	Frags   int
 	Ping    int
@@ -17,9 +17,14 @@ type Player struct {
 	IsBot   bool
 }
 
+type Client struct {
+	Player
+	IsSpec bool
+}
+
 type Spectator struct {
 	Name    string
-	NameRaw []int
+	NameInt []int
 	IsBot   bool
 }
 
