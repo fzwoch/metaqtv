@@ -8,7 +8,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"compress/gzip"
 	"encoding/binary"
 	"encoding/csv"
 	"encoding/json"
@@ -22,12 +21,6 @@ import (
 	"sync"
 	"time"
 )
-
-func panicIf(err error) {
-	if err != nil {
-		panic(err)
-	}
-}
 
 const ColFrags int = 1
 const ColTime int = 2
@@ -395,18 +388,6 @@ func main() {
 	panicIf(err)
 }
 
-func gzipCompress(data []byte) []byte {
-	buffer := bytes.NewBuffer(make([]byte, 0))
-	writer := gzip.NewWriter(buffer)
-	_, err := writer.Write(data)
-	panicIf(err)
-
-	err = writer.Close()
-	panicIf(err)
-
-	return buffer.Bytes()
-}
-
 func getApiCallback(store *MutexStore) func(response http.ResponseWriter, request *http.Request) {
 	return func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Set("Content-Type", "application/json")
@@ -422,33 +403,4 @@ func getApiCallback(store *MutexStore) func(response http.ResponseWriter, reques
 		_, err := response.Write(responseData)
 		panicIf(err)
 	}
-}
-
-func quakeTextToPlainText(value string) string {
-	readableTextBytes := []byte(value)
-
-	var charset = [...]byte{
-		' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-		'[', ']', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', ' ', ' ', ' ',
-	}
-
-	for i := range value {
-		readableTextBytes[i] &= 0x7f
-
-		if value[i] < byte(len(charset)) {
-			readableTextBytes[i] = charset[value[i]]
-		}
-	}
-
-	return strings.TrimSpace(string(readableTextBytes))
-}
-
-func stringToIntArray(value string) []int {
-	intArr := make([]int, len(value))
-
-	for i := range value {
-		intArr[i] = int(value[i])
-	}
-
-	return intArr
 }
