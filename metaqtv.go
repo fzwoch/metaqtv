@@ -30,13 +30,25 @@ const ColColorTop int = 6
 const ColColorBottom int = 7
 const ColTeam int = 8
 
+func getMasterServers(filePath string) []MasterServer {
+	jsonFile, err := os.ReadFile(filePath)
+	panicIf(err)
+
+	var masterServers []MasterServer
+
+	err = json.Unmarshal(jsonFile, &masterServers)
+	panicIf(err)
+
+	return masterServers
+}
+
 func main() {
 	var (
 		port           int
 		updateInterval int
 		timeout        int
 		retries        int
-		config         string
+		configPath     string
 		keepalive      int
 	)
 
@@ -44,17 +56,11 @@ func main() {
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
 	flag.IntVar(&timeout, "timeout", 500, "UDP timeout in milliseconds")
 	flag.IntVar(&retries, "retry", 5, "UDP retry count")
-	flag.StringVar(&config, "config", "master_servers.json", "Master server config file")
+	flag.StringVar(&configPath, "config", "master_servers.json", "Master servers file")
 	flag.IntVar(&keepalive, "keepalive", 3, "Keep server alive for N tries")
 	flag.Parse()
 
-	jsonFile, err := os.ReadFile(config)
-	panicIf(err)
-
-	var masterServers []MasterServer
-
-	err = json.Unmarshal(jsonFile, &masterServers)
-	panicIf(err)
+	var masterServers = getMasterServers(configPath)
 
 	jsonOutV2 := newMutexStore()
 
