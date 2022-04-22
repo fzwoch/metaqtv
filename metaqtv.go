@@ -383,6 +383,7 @@ func main() {
 
 	http.HandleFunc("/api/v3/servers", getApiCallback(jsonOutV2))
 
+	var err error
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
 	panicIf(err)
 }
