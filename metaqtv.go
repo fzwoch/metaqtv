@@ -278,12 +278,12 @@ func main() {
 						qtv.Map = val
 					}
 					if val, ok := qtv.Settings["maxclients"]; ok {
-						n, _ := strconv.Atoi(val)
-						qtv.MaxPlayers = n
+						value, _ := strconv.Atoi(val)
+						qtv.MaxPlayers = value
 					}
 					if val, ok := qtv.Settings["maxspectators"]; ok {
-						n, _ := strconv.Atoi(val)
-						qtv.MaxSpectators = n
+						value, _ := strconv.Atoi(val)
+						qtv.MaxSpectators = value
 					}
 
 					for scanner.Scan() {
