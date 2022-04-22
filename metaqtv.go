@@ -22,13 +22,15 @@ import (
 	"time"
 )
 
-const ColFrags int = 1
-const ColTime int = 2
-const ColPing int = 3
-const ColName int = 4
-const ColColorTop int = 6
-const ColColorBottom int = 7
-const ColTeam int = 8
+const (
+	ColFrags       = 1
+	ColTime        = 2
+	ColPing        = 3
+	ColName        = 4
+	ColColorTop    = 6
+	ColColorBottom = 7
+	ColTeam        = 8
+)
 
 func getMasterServers(filePath string) []MasterServer {
 	jsonFile, err := os.ReadFile(filePath)
