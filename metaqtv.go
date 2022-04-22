@@ -383,7 +383,7 @@ func main() {
 					}
 
 					if val, ok := qtvV2.Settings["hostname"]; ok {
-						qtvV2.Settings["hostname"] = quakeRawTextToReadableText(val)
+						qtvV2.Settings["hostname"] = quakeTextToPlainText(val)
 						qtvV2.Title = qtvV2.Settings["hostname"]
 					}
 					if val, ok := qtvV2.Settings["map"]; ok {
@@ -431,10 +431,10 @@ func main() {
 							teamRaw []int
 						)
 
-						nameStr := quakeRawTextToReadableText(nameRawStr)
+						nameStr := quakeTextToPlainText(nameRawStr)
 						nameInt = stringToIntArray(nameStr)
 
-						teamStr := quakeRawTextToReadableText(player[ColTeam])
+						teamStr := quakeTextToPlainText(player[ColTeam])
 						teamRaw = stringToIntArray(teamStr)
 
 						qtv.Players = append(qtv.Players, struct {
@@ -588,7 +588,7 @@ func getApiCallback(store *MutexStore) func(response http.ResponseWriter, reques
 	}
 }
 
-func quakeRawTextToReadableText(value string) string {
+func quakeTextToPlainText(value string) string {
 	readableTextBytes := []byte(value)
 
 	var charset = [...]byte{
