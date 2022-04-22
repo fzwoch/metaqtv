@@ -23,29 +23,6 @@ import (
 	"time"
 )
 
-type MutexStore struct {
-	sync.RWMutex
-	data []byte
-}
-
-func (store *MutexStore) Write(data []byte) {
-	store.Lock()
-	store.data = data
-	store.Unlock()
-}
-
-func (store *MutexStore) Read() []byte {
-	store.RLock()
-	data := store.data
-	store.RUnlock()
-	return data
-}
-
-func newMutexStore() *MutexStore {
-	store := MutexStore{data: make([]byte, 0)}
-	return &store
-}
-
 func panicIf(err error) {
 	if err != nil {
 		panic(err)
