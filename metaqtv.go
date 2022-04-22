@@ -203,7 +203,8 @@ func main() {
 
 					for i := 0; i < retries; i++ {
 						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						_, err = conn.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a})
+						serverStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a}
+						_, err = conn.Write(serverStatusSequence)
 						if err != nil {
 							log.Println(err)
 							return
@@ -223,7 +224,8 @@ func main() {
 						return
 					}
 
-					if !bytes.Equal(buffer[:6], []byte{0xff, 0xff, 0xff, 0xff, 'n', '\\'}) {
+					responseErrorSequence := []byte{0xff, 0xff, 0xff, 0xff, 'n', '\\'}
+					if !bytes.Equal(buffer[:len(responseErrorSequence)], responseErrorSequence) {
 						log.Println(ip.String() + ":" + strconv.Itoa(int(server.Port)) + ": Response error")
 						return
 					}
