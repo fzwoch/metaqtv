@@ -31,10 +31,10 @@ type QTV struct {
 }
 
 type Server struct {
-	IPAddress     string `json:"IpAddress"`
-	Address       string
-	Description   string
 	Title         string
+	Description   string
+	Ip            string `json:"IpAddress"`
+	SocketAddress string
 	Port          uint16
 	Map           string
 	NumClients    int

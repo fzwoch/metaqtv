@@ -247,10 +247,10 @@ func main() {
 					})
 
 					qtv := Server{
-						IPAddress:      ip.String(),
-						Address:        ip.String() + ":" + strconv.Itoa(int(server.Port)),
-						Description:    "",
 						Title:          "",
+						Description:    "",
+						Ip:             ip.String(),
+						SocketAddress:  ip.String() + ":" + strconv.Itoa(int(server.Port)),
 						Port:           server.Port,
 						Settings:       map[string]string{},
 						Players:        make([]Player, 0),
