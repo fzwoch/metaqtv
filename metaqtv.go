@@ -62,7 +62,7 @@ func main() {
 
 	var masterServers = getMasterServers(configPath)
 
-	jsonOutV2 := newMutexStore()
+	jsonOut := newMutexStore()
 
 	go func() {
 
@@ -375,14 +375,14 @@ func main() {
 				jsonTmp, err := json.MarshalIndent(jsonServers, "", "\t")
 				panicIf(err)
 
-				jsonOutV2.Write(jsonTmp)
+				jsonOut.Write(jsonTmp)
 			}()
 
 			wg.Wait()
 		}
 	}()
 
-	http.HandleFunc("/api/v3/servers", getApiCallback(jsonOutV2))
+	http.HandleFunc("/api/v3/servers", getApiCallback(jsonOut))
 
 	var err error
 	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
