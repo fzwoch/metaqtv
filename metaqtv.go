@@ -71,11 +71,6 @@ type serverItemV2 struct {
 	keepaliveCount int
 }
 
-var charset = [...]byte{
-	' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
-	'[', ']', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', ' ', ' ', ' ',
-}
-
 type MutexStore struct {
 	sync.RWMutex
 	data []byte
@@ -388,17 +383,7 @@ func main() {
 					}
 
 					if val, ok := qtvV2.Settings["hostname"]; ok {
-						hostname := []byte(val)
-
-						for i := range hostname {
-							hostname[i] &= 0x7f
-
-							if hostname[i] < byte(len(charset)) {
-								hostname[i] = charset[hostname[i]]
-							}
-						}
-
-						qtvV2.Settings["hostname"] = strings.TrimSpace(string(hostname))
+						qtvV2.Settings["hostname"] = quakeRawTextToReadableText(val)
 						qtvV2.Title = qtvV2.Settings["hostname"]
 					}
 					if val, ok := qtvV2.Settings["map"]; ok {
@@ -446,10 +431,10 @@ func main() {
 							teamRaw []int
 						)
 
-						nameStr := quakeRawTextToString([]byte(nameRawStr))
+						nameStr := quakeRawTextToReadableText(nameRawStr)
 						nameInt = stringToIntArray(nameStr)
 
-						teamStr := quakeRawTextToString([]byte(player[ColTeam]))
+						teamStr := quakeRawTextToReadableText(player[ColTeam])
 						teamRaw = stringToIntArray(teamStr)
 
 						qtv.Players = append(qtv.Players, struct {
@@ -603,18 +588,23 @@ func getApiCallback(store *MutexStore) func(response http.ResponseWriter, reques
 	}
 }
 
-func quakeRawTextToString(value []byte) string {
-	plainRawText := value
+func quakeRawTextToReadableText(value string) string {
+	readableTextBytes := []byte(value)
+
+	var charset = [...]byte{
+		' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ',
+		'[', ']', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', ' ', ' ', ' ', ' ',
+	}
 
 	for i := range value {
-		plainRawText[i] &= 0x7f
+		readableTextBytes[i] &= 0x7f
 
 		if value[i] < byte(len(charset)) {
-			plainRawText[i] = charset[value[i]]
+			readableTextBytes[i] = charset[value[i]]
 		}
 	}
 
-	return strings.TrimSpace(string(plainRawText))
+	return strings.TrimSpace(string(readableTextBytes))
 }
 
 func stringToIntArray(value string) []int {
