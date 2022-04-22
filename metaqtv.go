@@ -119,7 +119,8 @@ func main() {
 						return
 					}
 
-					if !bytes.Equal(buffer[:6], []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}) {
+					responseErrorSequence := []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
+					if !bytes.Equal(buffer[:len(responseErrorSequence)], responseErrorSequence) {
 						log.Println(master.Hostname + ":" + strconv.Itoa(master.Port) + ": Response error")
 						return
 					}
