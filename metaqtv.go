@@ -608,11 +608,11 @@ func quakeTextToPlainText(value string) string {
 }
 
 func stringToIntArray(value string) []int {
-	intText := make([]int, len(value))
+	intArr := make([]int, len(value))
 
 	for i := range value {
-		intText[i] = int(value[i])
+		intArr[i] = int(value[i])
 	}
 
-	return intText
+	return intArr
 }
