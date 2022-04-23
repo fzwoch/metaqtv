@@ -91,7 +91,8 @@ func main() {
 
 					for i := 0; i < retries; i++ {
 						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						_, err = conn.Write([]byte{0x63, 0x0a, 0x00})
+						mastersServerStatusSequence := []byte{0x63, 0x0a, 0x00}
+						_, err = conn.Write(mastersServerStatusSequence)
 						if err != nil {
 							log.Println(err)
 							return
@@ -111,8 +112,10 @@ func main() {
 						return
 					}
 
-					responseErrorSequence := []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
-					if !bytes.Equal(buffer[:len(responseErrorSequence)], responseErrorSequence) {
+					validResponseSequence := []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
+					actualResponseSequence := buffer[:len(validResponseSequence)]
+					isValidResponseSequence := bytes.Equal(actualResponseSequence, validResponseSequence)
+					if !isValidResponseSequence {
 						log.Println(master.Hostname + ":" + strconv.Itoa(master.Port) + ": Response error")
 						return
 					}
@@ -158,7 +161,8 @@ func main() {
 
 					for i := 0; i < retries; i++ {
 						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
-						_, err = conn.Write([]byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a})
+						qtvServerStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a}
+						_, err = conn.Write(qtvServerStatusSequence)
 						if err != nil {
 							log.Println(err)
 							return
@@ -179,7 +183,10 @@ func main() {
 						return
 					}
 
-					if !bytes.Equal(buffer[:8], []byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'}) {
+					expectedQtvStatusResponse := []byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'}
+					actualQtvStatusResponse := buffer[:len(expectedQtvStatusResponse)]
+					isCorrectQtvResponse := bytes.Equal(actualQtvStatusResponse, expectedQtvStatusResponse)
+					if !isCorrectQtvResponse {
 						// some servers react to the specific "32" status message but will send the regular
 						// status message because they misunderstood our command.
 						return
@@ -223,8 +230,10 @@ func main() {
 						return
 					}
 
-					responseErrorSequence := []byte{0xff, 0xff, 0xff, 0xff, 'n', '\\'}
-					if !bytes.Equal(buffer[:len(responseErrorSequence)], responseErrorSequence) {
+					expectedStatusResponse := []byte{0xff, 0xff, 0xff, 0xff, 'n', '\\'}
+					actualStatusResponse := buffer[:len(expectedStatusResponse)]
+					isCorrectResponse := bytes.Equal(actualStatusResponse, expectedStatusResponse)
+					if !isCorrectResponse {
 						log.Println(ip.String() + ":" + strconv.Itoa(int(server.Port)) + ": Response error")
 						return
 					}
