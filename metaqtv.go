@@ -22,16 +22,15 @@ import (
 	"time"
 )
 
-func getMasterServersFromJsonFile(filePath string) []MasterServer {
+func getMasterServersFromJsonFile(filePath string) []SocketAddress {
 	jsonFile, err := os.ReadFile(filePath)
 	panicIf(err)
 
-	var masterServers []MasterServer
-
-	err = json.Unmarshal(jsonFile, &masterServers)
+	var result []SocketAddress
+	err = json.Unmarshal(jsonFile, &result)
 	panicIf(err)
 
-	return masterServers
+	return result
 }
 
 func main() {
@@ -52,7 +51,7 @@ func main() {
 	flag.IntVar(&keepalive, "keepalive", 3, "Keep server alive for N tries")
 	flag.Parse()
 
-	var masterServers = getMasterServersFromJsonFile(masterServersJsonFilePath)
+	var masters = getMasterServersFromJsonFile(masterServersJsonFilePath)
 
 	jsonOut := newMutexStore()
 
@@ -71,13 +70,13 @@ func main() {
 			servers := make(map[NetSocketAddress]struct{})
 
 			bufferMaxSize := 8192
-			for _, master := range masterServers {
+			for _, master := range masters {
 				wg.Add(1)
 
-				go func(master MasterServer) {
+				go func(master SocketAddress) {
 					defer wg.Done()
 
-					conn, err := net.Dial("udp4", master.SocketAddress())
+					conn, err := net.Dial("udp4", master.toString())
 
 					if err != nil {
 						log.Println(err)
@@ -115,7 +114,7 @@ func main() {
 					actualResponseSequence := buffer[:len(validResponseSequence)]
 					isValidResponseSequence := bytes.Equal(actualResponseSequence, validResponseSequence)
 					if !isValidResponseSequence {
-						log.Println(master.SocketAddress() + ": Response error")
+						log.Println(master.toString() + ": Response error")
 						return
 					}
 

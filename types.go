@@ -80,13 +80,13 @@ func (nsa NetSocketAddress) toString() string {
 	return ip.String() + ":" + strconv.Itoa(int(nsa.Port))
 }
 
-type MasterServer struct {
-	Hostname string `json:"hostname"`
-	Port     int    `json:"port"`
+type SocketAddress struct {
+	Host string
+	Port int
 }
 
-func (ms MasterServer) SocketAddress() string {
-	return ms.Hostname + ":" + strconv.Itoa(ms.Port)
+func (sa SocketAddress) toString() string {
+	return sa.Host + ":" + strconv.Itoa(sa.Port)
 }
 
 type MutexStore struct {
