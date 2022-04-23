@@ -56,11 +56,47 @@ func main() {
 	}()
 
 	// http
-	cacheClient := getHttpCacheClient()
+	serversHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		respond(servers, w, r)
+	})
 
-	serversHandler := cacheClient.Middleware(http.HandlerFunc(getApiCallback(&servers)))
-	http.Handle("/api/v3/servers", serversHandler)
+	proxiesHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		respond(Filter(servers, isProxy), w, r)
+	})
+
+	qtvHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		respond(Filter(servers, isQtv), w, r)
+	})
+
+	cacheClient := getHttpCacheClient()
+	http.Handle("/api/v3/servers", cacheClient.Middleware(serversHandler))
+	http.Handle("/api/v3/proxies", cacheClient.Middleware(proxiesHandler))
+	http.Handle("/api/v3/qtv", cacheClient.Middleware(qtvHandler))
 	http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
+}
+
+func isProxy(server QuakeServer) bool {
+	return strings.HasPrefix(server.Settings["*version"], "qwfwd")
+}
+
+func isQtv(server QuakeServer) bool {
+	return strings.HasPrefix(server.Settings["*version"], "QTV")
+}
+
+func respond(servers []QuakeServer, response http.ResponseWriter, request *http.Request) {
+	response.Header().Set("Content-Type", "application/json")
+
+	serversAsJson, _ := json.MarshalIndent(servers, "", "\t")
+	responseData := serversAsJson
+
+	acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
+
+	if acceptsGzipEncoding {
+		response.Header().Set("Content-Encoding", "gzip")
+		responseData = gzipCompress(responseData)
+	}
+
+	response.Write(responseData)
 }
 
 func getHttpCacheClient() *cache.Client {
@@ -70,26 +106,8 @@ func getHttpCacheClient() *cache.Client {
 	)
 	cacheClient, _ := cache.NewClient(
 		cache.ClientWithAdapter(memcached),
-		cache.ClientWithTTL(10*time.Second),
+		cache.ClientWithTTL(5*time.Second),
 	)
 
 	return cacheClient
-}
-
-func getApiCallback(servers *[]QuakeServer) func(response http.ResponseWriter, request *http.Request) {
-	return func(response http.ResponseWriter, request *http.Request) {
-		response.Header().Set("Content-Type", "application/json")
-
-		serversAsJson, _ := json.MarshalIndent(servers, "", "\t")
-		responseData := serversAsJson
-
-		acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
-
-		if acceptsGzipEncoding {
-			response.Header().Set("Content-Encoding", "gzip")
-			responseData = gzipCompress(responseData)
-		}
-
-		response.Write(responseData)
-	}
 }
