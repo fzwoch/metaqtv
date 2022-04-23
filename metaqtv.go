@@ -22,16 +22,6 @@ import (
 	"time"
 )
 
-const (
-	ColFrags       = 1
-	ColTime        = 2
-	ColPing        = 3
-	ColName        = 4
-	ColColorTop    = 6
-	ColColorBottom = 7
-	ColTeam        = 8
-)
-
 func getMasterServers(filePath string) []MasterServer {
 	jsonFile, err := os.ReadFile(filePath)
 	panicIf(err)
