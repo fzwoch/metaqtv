@@ -10,20 +10,19 @@ import (
 	"github.com/victorspringer/http-cache/adapter/memory"
 )
 
-func serversResponse(servers []QuakeServer, response http.ResponseWriter, request *http.Request) {
+func response(data any, response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
-	serversAsJson, _ := json.MarshalIndent(servers, "", "\t")
-	responseData := serversAsJson
+	responseBody, _ := json.MarshalIndent(data, "", "\t")
 
 	acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
 
 	if acceptsGzipEncoding {
 		response.Header().Set("Content-Encoding", "gzip")
-		responseData = gzipCompress(responseData)
+		responseBody = gzipCompress(responseBody)
 	}
 
-	response.Write(responseData)
+	response.Write(responseBody)
 }
 
 func getHttpCacheClient() *cache.Client {

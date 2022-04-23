@@ -38,15 +38,15 @@ func main() {
 
 	// http
 	serversHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		serversResponse(Filter(servers, isNormalServer), w, r)
+		response(Filter(servers, isNormalServer), w, r)
 	})
 
 	proxiesHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		serversResponse(Filter(servers, isProxyServer), w, r)
+		response(Filter(servers, isProxyServer), w, r)
 	})
 
 	qtvHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		serversResponse(Filter(servers, isQtvServer), w, r)
+		response(Filter(servers, isQtvServer), w, r)
 	})
 
 	cacheClient := getHttpCacheClient()
