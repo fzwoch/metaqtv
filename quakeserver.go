@@ -13,6 +13,64 @@ import (
 	"sync"
 )
 
+type Player struct {
+	Name    string
+	NameInt []int
+	Team    string
+	TeamInt []int
+	Skin    string
+	Colors  [2]int
+	Frags   int
+	Ping    int
+	Time    int
+	IsBot   bool
+}
+
+type Client struct {
+	Player
+	IsSpec bool
+}
+
+type Spectator struct {
+	Name    string
+	NameInt []int
+	IsBot   bool
+}
+
+type QtvServer struct {
+	Title         string
+	Address       string
+	Numspectators int
+	Spectators    []string
+}
+
+type QuakeServer struct {
+	Title         string
+	Description   string
+	Address       string
+	Map           string
+	NumPlayers    int
+	MaxPlayers    int
+	NumSpectators int
+	MaxSpectators int
+	Players       []Player
+	Spectators    []Spectator
+	Settings      map[string]string
+	QtvAddress    string
+}
+
+func newQuakeServer() QuakeServer {
+	return QuakeServer{
+		Title:       "",
+		Description: "",
+		Address:     "",
+		Settings:    map[string]string{},
+		Players:     make([]Player, 0),
+		Spectators:  make([]Spectator, 0),
+		QtvAddress:  "",
+	}
+}
+
 func ReadServerQtv(serverAddress SocketAddress, retries int, timeout int) (QtvServer, error) {
 	conn, err := net.Dial("udp4", serverAddress.toString())
 	if err != nil {

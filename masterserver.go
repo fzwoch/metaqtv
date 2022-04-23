@@ -9,6 +9,20 @@ import (
 	"sync"
 )
 
+type RawServerSocketAddress struct {
+	IpParts [4]byte
+	Port    uint16
+}
+
+func (addr RawServerSocketAddress) toSocketAddress() SocketAddress {
+	ip := net.IPv4(addr.IpParts[0], addr.IpParts[1], addr.IpParts[2], addr.IpParts[3]).String()
+
+	return SocketAddress{
+		Host: ip,
+		Port: int(addr.Port),
+	}
+}
+
 func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]SocketAddress, error) {
 	var (
 		requestStatusSequence = []byte{0x63, 0x0a, 0x00}
