@@ -7,17 +7,6 @@ import (
 	"strings"
 )
 
-const (
-	ColIndexFrags              = 1
-	ColIndexTime               = 2
-	ColIndexPing               = 3
-	ColIndexName               = 4
-	ColIndexColorTop           = 6
-	ColIndexColorBottom        = 7
-	ColIndexTeam               = 8
-	SpectatorPrefix     string = "\\s\\"
-)
-
 func isBotName(name string) bool {
 	switch name {
 	case
@@ -38,6 +27,17 @@ func isBotPing(ping int) bool {
 }
 
 func parseClientRecord(clientRecord []string) (Client, error) {
+	const (
+		IndexFrags              = 1
+		IndexTime               = 2
+		IndexPing               = 3
+		IndexName               = 4
+		IndexColorTop           = 6
+		IndexColorBottom        = 7
+		IndexTeam               = 8
+		SpectatorPrefix  string = "\\s\\"
+	)
+
 	expectedColumnCount := 9
 	columnCount := len(clientRecord)
 
@@ -46,7 +46,7 @@ func parseClientRecord(clientRecord []string) (Client, error) {
 		return Client{}, err
 	}
 
-	nameRawStr := clientRecord[ColIndexName]
+	nameRawStr := clientRecord[IndexName]
 
 	isSpec := strings.HasPrefix(nameRawStr, SpectatorPrefix)
 	if isSpec {
@@ -55,13 +55,13 @@ func parseClientRecord(clientRecord []string) (Client, error) {
 
 	name := quakeTextToPlainText(nameRawStr)
 	nameInt := stringToIntArray(name)
-	team := quakeTextToPlainText(clientRecord[ColIndexTeam])
+	team := quakeTextToPlainText(clientRecord[IndexTeam])
 	teamInt := stringToIntArray(team)
-	frags, _ := strconv.Atoi(clientRecord[ColIndexFrags])
-	time_, _ := strconv.Atoi(clientRecord[ColIndexTime])
-	ping, _ := strconv.Atoi(clientRecord[ColIndexPing])
-	colorTop, _ := strconv.Atoi(clientRecord[ColIndexColorTop])
-	colorBottom, _ := strconv.Atoi(clientRecord[ColIndexColorBottom])
+	frags, _ := strconv.Atoi(clientRecord[IndexFrags])
+	time_, _ := strconv.Atoi(clientRecord[IndexTime])
+	ping, _ := strconv.Atoi(clientRecord[IndexPing])
+	colorTop, _ := strconv.Atoi(clientRecord[IndexColorTop])
+	colorBottom, _ := strconv.Atoi(clientRecord[IndexColorBottom])
 
 	return Client{
 		Player: Player{
