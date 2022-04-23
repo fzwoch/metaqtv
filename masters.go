@@ -73,9 +73,9 @@ func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]Sock
 
 func ReadMasterServers(masterAddresses []SocketAddress, retries int, timeout int) []SocketAddress {
 	var (
-		wg     sync.WaitGroup
-		mutex  sync.Mutex
-		result = make([]SocketAddress, 0)
+		wg           sync.WaitGroup
+		mutex        sync.Mutex
+		allAddresses = make([]SocketAddress, 0)
 	)
 
 	for _, masterAddress := range masterAddresses {
@@ -92,12 +92,22 @@ func ReadMasterServers(masterAddresses []SocketAddress, retries int, timeout int
 			}
 
 			mutex.Lock()
-			result = append(result, addresses...)
+			allAddresses = append(allAddresses, addresses...)
 			mutex.Unlock()
 		}(masterAddress)
 	}
 
 	wg.Wait()
 
-	return result
+	addressMap := make(map[SocketAddress]bool, 0)
+	uniqueAddresses := make([]SocketAddress, 0)
+
+	for _, address := range allAddresses {
+		if !addressMap[address] {
+			uniqueAddresses = append(uniqueAddresses, address)
+			addressMap[address] = true
+		}
+	}
+
+	return uniqueAddresses
 }

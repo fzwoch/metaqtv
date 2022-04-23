@@ -81,19 +81,14 @@ func ReadServerQtv(serverAddress SocketAddress, retries int, timeout int) (QtvSe
 }
 
 func ReadServers(serverAddresses []SocketAddress, retries int, timeout int) []QuakeServer {
-	quakeServers := make([]QuakeServer, 0)
-	processedAddresses := make(map[SocketAddress]bool, 0)
-
 	var (
 		wg    sync.WaitGroup
 		mutex sync.Mutex
 	)
 
-	for _, address := range serverAddresses {
-		if _, ok := processedAddresses[address]; ok {
-			continue
-		}
+	quakeServers := make([]QuakeServer, 0)
 
+	for _, address := range serverAddresses {
 		wg.Add(1)
 
 		go func(address SocketAddress) {
@@ -106,7 +101,6 @@ func ReadServers(serverAddresses []SocketAddress, retries int, timeout int) []Qu
 			}
 
 			mutex.Lock()
-			processedAddresses[address] = true
 			quakeServers = append(quakeServers, qserver)
 			mutex.Unlock()
 		}(address)
