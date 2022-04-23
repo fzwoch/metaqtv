@@ -69,7 +69,7 @@ func newQuakeServer() QuakeServer {
 	}
 }
 
-type SocketAddress struct {
+type NetSocketAddress struct {
 	Ip   [4]byte
 	Port uint16
 }

@@ -58,7 +58,7 @@ func main() {
 
 	go func() {
 
-		allQuakeServers := make(map[SocketAddress]QuakeServer)
+		allQuakeServers := make(map[NetSocketAddress]QuakeServer)
 
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
 
@@ -68,7 +68,7 @@ func main() {
 				mutex sync.Mutex
 			)
 
-			servers := make(map[SocketAddress]struct{})
+			servers := make(map[NetSocketAddress]struct{})
 
 			bufferMaxSize := 8192
 			for _, master := range masterServers {
@@ -124,7 +124,7 @@ func main() {
 					mutex.Lock()
 
 					for {
-						var host SocketAddress
+						var host NetSocketAddress
 
 						err = binary.Read(reader, binary.BigEndian, &host)
 						if err != nil {
@@ -143,7 +143,7 @@ func main() {
 			for server := range servers {
 				wg.Add(1)
 
-				go func(server SocketAddress) {
+				go func(server NetSocketAddress) {
 					defer wg.Done()
 
 					ip := net.IPv4(server.Ip[0], server.Ip[1], server.Ip[2], server.Ip[3])
