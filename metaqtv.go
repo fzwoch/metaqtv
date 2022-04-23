@@ -22,7 +22,7 @@ import (
 	"time"
 )
 
-func getMasterServers(filePath string) []MasterServer {
+func getMasterServersFromJsonFile(filePath string) []MasterServer {
 	jsonFile, err := os.ReadFile(filePath)
 	panicIf(err)
 
@@ -36,23 +36,23 @@ func getMasterServers(filePath string) []MasterServer {
 
 func main() {
 	var (
-		port           int
-		updateInterval int
-		timeout        int
-		retries        int
-		configPath     string
-		keepalive      int
+		port                      int
+		updateInterval            int
+		timeout                   int
+		retries                   int
+		masterServersJsonFilePath string
+		keepalive                 int
 	)
 
 	flag.IntVar(&port, "port", 3000, "HTTP listen port")
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
 	flag.IntVar(&timeout, "timeout", 500, "UDP timeout in milliseconds")
 	flag.IntVar(&retries, "retry", 5, "UDP retry count")
-	flag.StringVar(&configPath, "config", "master_servers.json", "Master servers file")
+	flag.StringVar(&masterServersJsonFilePath, "config", "master_servers.json", "Master servers file")
 	flag.IntVar(&keepalive, "keepalive", 3, "Keep server alive for N tries")
 	flag.Parse()
 
-	var masterServers = getMasterServers(configPath)
+	var masterServers = getMasterServersFromJsonFile(masterServersJsonFilePath)
 
 	jsonOut := newMutexStore()
 
