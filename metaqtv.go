@@ -37,20 +37,21 @@ func main() {
 		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
 
 		for ; true; <-ticker.C {
-			quakeServerAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
-			quakeServers := ReadServers(quakeServerAddresses, conf.retries, conf.timeout)
-
 			wg := sync.WaitGroup{}
 			wg.Add(1)
+
 			go func() {
 				defer wg.Done()
+
+				quakeServerAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
+				quakeServers := ReadServers(quakeServerAddresses, conf.retries, conf.timeout)
 
 				serversAsJson, err := json.MarshalIndent(quakeServers, "", "\t")
 				panicIf(err)
 
 				responseJsonData.Write(serversAsJson)
 			}()
-			wg.Wait()
+
 		}
 	}()
 
