@@ -37,21 +37,29 @@ func main() {
 	}()
 
 	// http
-	serversHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response(Filter(servers, isNormalServer), w, r)
+	handlerByFilter := func(validator func(QuakeServer) bool) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) {
+			response(Filter(servers, validator), w, r)
+		}
+	}
+
+	serversHandler := handlerByFilter(isNormalServer)
+	proxiesHandler := handlerByFilter(isProxyServer)
+	qtvHandler := handlerByFilter(isQtvServer)
+
+	serversToQtvHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response(serverAddressToQtvMap(servers), w, r)
 	})
 
-	proxiesHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response(Filter(servers, isProxyServer), w, r)
-	})
-
-	qtvHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response(Filter(servers, isQtvServer), w, r)
+	qtvToServersHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		response(qtvToServerAddressMap(servers), w, r)
 	})
 
 	cacheClient := getHttpCacheClient()
 	http.Handle("/api/v3/servers", cacheClient.Middleware(serversHandler))
 	http.Handle("/api/v3/proxies", cacheClient.Middleware(proxiesHandler))
 	http.Handle("/api/v3/qtv", cacheClient.Middleware(qtvHandler))
+	http.Handle("/api/v3/server_to_qtv", cacheClient.Middleware(serversToQtvHandler))
+	http.Handle("/api/v3/qtv_to_server", cacheClient.Middleware(qtvToServersHandler))
 	http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
 }

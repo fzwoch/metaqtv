@@ -17,6 +17,14 @@ func Filter[Type any](values []Type, validator func(Type) bool) []Type {
 	return result
 }
 
+func reverseStringMap(map_ map[string]string) map[string]string {
+	reversed := make(map[string]string, 0)
+	for key, value := range map_ {
+		reversed[value] = key
+	}
+	return reversed
+}
+
 func panicIf(err error) {
 	if err != nil {
 		panic(err)
