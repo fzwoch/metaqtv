@@ -50,8 +50,6 @@ type QuakeServer struct {
 	Spectators    []Spectator
 	Settings      map[string]string
 	QtvAddress    string
-
-	keepaliveCount int
 }
 
 func newQuakeServer() QuakeServer {

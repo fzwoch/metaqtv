@@ -31,70 +31,30 @@ const bufferMaxSize = 8192
 func main() {
 	conf := getConfig()
 	masters := getMasterServersFromJsonFile(conf.masterServersFile)
-	jsonOut := newMutexStore()
+	responseJsonData := newMutexStore()
 
 	go func() {
-		quakeServers := make(map[SocketAddress]QuakeServer)
 		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
 
 		for ; true; <-ticker.C {
-			var (
-				wg    sync.WaitGroup
-				mutex sync.Mutex
-			)
-
 			quakeServerAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
+			quakeServers := ReadServers(quakeServerAddresses, conf.retries, conf.timeout)
 
-			for _, serverAddress := range quakeServerAddresses {
-				wg.Add(1)
-
-				go func(serverAddress SocketAddress) {
-					defer wg.Done()
-
-					qserver, err := ReadServer(serverAddress, conf.retries, conf.timeout, conf.keepalive)
-
-					if err != nil {
-						return
-					}
-
-					mutex.Lock()
-					quakeServers[serverAddress] = qserver
-					mutex.Unlock()
-				}(serverAddress)
-			}
-
-			wg.Wait()
-
+			wg := sync.WaitGroup{}
 			wg.Add(1)
 			go func() {
 				defer wg.Done()
 
-				jsonServers := make([]QuakeServer, 0)
-
-				for key, server := range quakeServers {
-					if server.keepaliveCount <= 0 {
-						delete(quakeServers, key)
-						continue
-					}
-
-					server.keepaliveCount--
-
-					jsonServers = append(jsonServers, server)
-
-					quakeServers[key] = server
-				}
-
-				jsonTmp, err := json.MarshalIndent(jsonServers, "", "\t")
+				serversAsJson, err := json.MarshalIndent(quakeServers, "", "\t")
 				panicIf(err)
 
-				jsonOut.Write(jsonTmp)
+				responseJsonData.Write(serversAsJson)
 			}()
-
 			wg.Wait()
 		}
 	}()
 
-	http.HandleFunc("/api/v3/servers", getApiCallback(jsonOut))
+	http.HandleFunc("/api/v3/servers", getApiCallback(responseJsonData))
 
 	var err error
 	err = http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
