@@ -58,7 +58,7 @@ func main() {
 
 	go func() {
 
-		allServers := make(map[SocketAddress]QuakeServer)
+		allQuakeServers := make(map[SocketAddress]QuakeServer)
 
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
 
@@ -306,7 +306,7 @@ func main() {
 					}
 
 					mutex.Lock()
-					allServers[server] = qserver
+					allQuakeServers[server] = qserver
 					mutex.Unlock()
 				}(server)
 			}
@@ -319,9 +319,9 @@ func main() {
 
 				jsonServers := make([]QuakeServer, 0)
 
-				for key, server := range allServers {
+				for key, server := range allQuakeServers {
 					if server.keepaliveCount <= 0 {
-						delete(allServers, key)
+						delete(allQuakeServers, key)
 						continue
 					}
 
@@ -329,7 +329,7 @@ func main() {
 
 					jsonServers = append(jsonServers, server)
 
-					allServers[key] = server
+					allQuakeServers[key] = server
 				}
 
 				jsonTmp, err := json.MarshalIndent(jsonServers, "", "\t")
