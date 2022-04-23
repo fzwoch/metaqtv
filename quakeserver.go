@@ -235,11 +235,9 @@ func parseClientRecord(clientRecord []string) (Client, error) {
 	nameInt := stringToIntArray(name)
 	team := quakeTextToPlainText(clientRecord[IndexTeam])
 	teamInt := stringToIntArray(team)
-	frags, _ := strconv.Atoi(clientRecord[IndexFrags])
-	time_, _ := strconv.Atoi(clientRecord[IndexTime])
-	ping, _ := strconv.Atoi(clientRecord[IndexPing])
-	colorTop, _ := strconv.Atoi(clientRecord[IndexColorTop])
-	colorBottom, _ := strconv.Atoi(clientRecord[IndexColorBottom])
+	colorTop := fieldAsInt(clientRecord[IndexColorTop])
+	colorBottom := fieldAsInt(clientRecord[IndexColorBottom])
+	ping := fieldAsInt(clientRecord[IndexPing])
 
 	return Client{
 		Player: Player{
@@ -249,12 +247,17 @@ func parseClientRecord(clientRecord []string) (Client, error) {
 			TeamInt: teamInt,
 			Skin:    clientRecord[IndexSkin],
 			Colors:  [2]int{colorTop, colorBottom},
-			Frags:   frags,
+			Frags:   fieldAsInt(clientRecord[IndexFrags]),
 			Ping:    ping,
-			Time:    time_,
+			Time:    fieldAsInt(clientRecord[IndexTime]),
 			IsBot:   isBotName(name) || isBotPing(ping),
 		},
 		IsSpec: isSpec,
 	}, nil
 
+}
+
+func fieldAsInt(value string) int {
+	valueAsInt, _ := strconv.Atoi(value)
+	return valueAsInt
 }
