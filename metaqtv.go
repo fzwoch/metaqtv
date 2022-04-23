@@ -248,18 +248,10 @@ func main() {
 						return false
 					})
 
-					server_ := Server{
-						Title:          "",
-						Description:    "",
-						Ip:             ip.String(),
-						SocketAddress:  ip.String() + ":" + strconv.Itoa(int(server.Port)),
-						Port:           server.Port,
-						Settings:       map[string]string{},
-						Players:        make([]Player, 0),
-						Spectators:     make([]Spectator, 0),
-						QTV:            make([]QTV, 0),
-						keepaliveCount: keepalive,
-					}
+					server_ := newServer()
+					server_.SocketAddress = ip.String() + ":" + strconv.Itoa(int(server.Port))
+					server_.Port = server.Port
+					server_.keepaliveCount = keepalive
 
 					server_.QTV = append(server_.QTV, QTV{
 						Host:       fields[2],

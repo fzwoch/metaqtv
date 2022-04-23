@@ -54,6 +54,20 @@ type Server struct {
 	keepaliveCount int
 }
 
+func newServer() Server {
+	return Server{
+		Title:         "",
+		Description:   "",
+		Ip:            "",
+		SocketAddress: "",
+		Port:          0,
+		Settings:      map[string]string{},
+		Players:       make([]Player, 0),
+		Spectators:    make([]Spectator, 0),
+		QTV:           make([]QTV, 0),
+	}
+}
+
 type SocketAddress struct {
 	Ip   [4]byte
 	Port uint16
