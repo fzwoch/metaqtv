@@ -7,10 +7,10 @@ import (
 	"time"
 )
 
-func Filter[Type any](values []Type, filterFunc func(Type) bool) []Type {
+func Filter[Type any](values []Type, validator func(Type) bool) []Type {
 	var result = make([]Type, 0)
 	for _, value := range values {
-		if filterFunc(value) {
+		if validator(value) {
 			result = append(result, value)
 		}
 	}
