@@ -215,6 +215,9 @@ func ReadServer(serverAddress SocketAddress, retries int, timeout int) (QuakeSer
 		}
 	}
 
+	qserver.NumPlayers = len(qserver.Players)
+	qserver.NumSpectators = len(qserver.Spectators)
+
 	qtvServer, _ := ReadServerQtv(serverAddress, retries, timeout)
 	qserver.QtvAddress = qtvServer.Address
 
