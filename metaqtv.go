@@ -90,7 +90,7 @@ func main() {
 					bufferLength := 0
 
 					for i := 0; i < retries; i++ {
-						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						conn.SetDeadline(timeInFuture(timeout))
 						mastersServerStatusSequence := []byte{0x63, 0x0a, 0x00}
 						_, err = conn.Write(mastersServerStatusSequence)
 						if err != nil {
@@ -98,7 +98,7 @@ func main() {
 							return
 						}
 
-						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						conn.SetDeadline(timeInFuture(timeout))
 						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue
@@ -160,7 +160,7 @@ func main() {
 					bufferLength := 0
 
 					for i := 0; i < retries; i++ {
-						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						conn.SetDeadline(timeInFuture(timeout))
 						qtvServerStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a}
 						_, err = conn.Write(qtvServerStatusSequence)
 						if err != nil {
@@ -168,7 +168,7 @@ func main() {
 							return
 						}
 
-						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						conn.SetDeadline(timeInFuture(timeout))
 						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue
@@ -208,7 +208,7 @@ func main() {
 					}
 
 					for i := 0; i < retries; i++ {
-						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						conn.SetDeadline(timeInFuture(timeout))
 						serverStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a}
 						_, err = conn.Write(serverStatusSequence)
 						if err != nil {
@@ -216,7 +216,7 @@ func main() {
 							return
 						}
 
-						conn.SetDeadline(time.Now().Add(time.Duration(timeout) * time.Millisecond))
+						conn.SetDeadline(timeInFuture(timeout))
 						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue

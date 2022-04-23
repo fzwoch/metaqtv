@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"compress/gzip"
 	"strings"
+	"time"
 )
 
 func panicIf(err error) {
@@ -51,4 +52,8 @@ func stringToIntArray(value string) []int {
 	}
 
 	return intArr
+}
+
+func timeInFuture(delta int) time.Time {
+	return time.Now().Add(time.Duration(delta) * time.Millisecond)
 }
