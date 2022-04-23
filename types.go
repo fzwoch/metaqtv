@@ -12,7 +12,6 @@ type Player struct {
 	Colors  [2]int
 	Frags   int
 	Ping    int
-	Spec    bool
 	Time    int
 	IsBot   bool
 }
