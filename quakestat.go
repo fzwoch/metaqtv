@@ -1,6 +1,8 @@
 package main
 
 import (
+	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 )
@@ -36,10 +38,12 @@ func isBotPing(ping int) bool {
 }
 
 func parseClientRecord(clientRecord []string) (Client, error) {
-	expectedPlayerColumnCount := 9
+	expectedColumnCount := 9
+	columnCount := len(clientRecord)
 
-	if len(clientRecord) != expectedPlayerColumnCount {
-		return Client{}, nil
+	if columnCount != expectedColumnCount {
+		err := errors.New(fmt.Sprintf("invalid player column count %d.", columnCount))
+		return Client{}, err
 	}
 
 	nameRawStr := clientRecord[ColIndexName]
