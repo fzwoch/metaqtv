@@ -51,7 +51,7 @@ func main() {
 				go func(serverAddress SocketAddress) {
 					defer wg.Done()
 
-					qserver, err := GetServerInfo(serverAddress, conf.retries, conf.timeout, conf.keepalive)
+					qserver, err := ReadServer(serverAddress, conf.retries, conf.timeout, conf.keepalive)
 
 					if err != nil {
 						return

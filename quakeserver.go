@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-func GetServerQtvInfo(serverAddress SocketAddress, retries int, timeout int) (QtvServer, error) {
+func ReadServerQtv(serverAddress SocketAddress, retries int, timeout int) (QtvServer, error) {
 	conn, err := net.Dial("udp4", serverAddress.toString())
 	if err != nil {
 		return QtvServer{}, err
@@ -79,7 +79,7 @@ func GetServerQtvInfo(serverAddress SocketAddress, retries int, timeout int) (Qt
 	}, nil
 }
 
-func GetServerInfo(serverAddress SocketAddress, retries int, timeout int, keepalive int) (QuakeServer, error) {
+func ReadServer(serverAddress SocketAddress, retries int, timeout int, keepalive int) (QuakeServer, error) {
 	conn, err := net.Dial("udp4", serverAddress.toString())
 	if err != nil {
 		return QuakeServer{}, err
@@ -178,7 +178,7 @@ func GetServerInfo(serverAddress SocketAddress, retries int, timeout int, keepal
 		}
 	}
 
-	qtvServer, _ := GetServerQtvInfo(serverAddress, retries, timeout)
+	qtvServer, _ := ReadServerQtv(serverAddress, retries, timeout)
 	qserver.QtvAddress = qtvServer.Address
 
 	return qserver, nil
