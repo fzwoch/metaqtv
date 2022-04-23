@@ -24,11 +24,7 @@ func (addr RawServerSocketAddress) toSocketAddress() SocketAddress {
 }
 
 func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]SocketAddress, error) {
-	var (
-		requestStatusSequence = []byte{0x63, 0x0a, 0x00}
-		validResponseSequence = []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
-		addresses             = make([]SocketAddress, 0)
-	)
+	addresses := make([]SocketAddress, 0)
 
 	conn, err := net.Dial("udp4", socketAddress)
 	if err != nil {
@@ -37,6 +33,7 @@ func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]Sock
 
 	defer conn.Close()
 
+	requestStatusSequence := []byte{0x63, 0x0a, 0x00}
 	buffer := make([]byte, bufferMaxSize)
 	bufferLength := 0
 
@@ -61,6 +58,7 @@ func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]Sock
 		return addresses, err
 	}
 
+	validResponseSequence := []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
 	responseSequence := buffer[:len(validResponseSequence)]
 	isValidSequence := bytes.Equal(responseSequence, validResponseSequence)
 
