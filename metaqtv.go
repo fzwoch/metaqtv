@@ -67,7 +67,7 @@ func main() {
 				mut sync.Mutex
 			)
 
-			addresses := make([]SocketAddress, 0)
+			allQuakeAddresses := make([]SocketAddress, 0)
 
 			for _, master := range masters {
 				wg.Add(1)
@@ -129,7 +129,7 @@ func main() {
 							break
 						}
 
-						addresses = append(addresses, rawAddress.toSocketAddress())
+						allQuakeAddresses = append(allQuakeAddresses, rawAddress.toSocketAddress())
 					}
 
 					mut.Unlock()
@@ -138,7 +138,7 @@ func main() {
 
 			wg.Wait()
 
-			for _, address := range addresses {
+			for _, address := range allQuakeAddresses {
 				wg.Add(1)
 
 				go func(sa SocketAddress) {
