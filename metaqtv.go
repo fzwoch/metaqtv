@@ -38,28 +38,24 @@ func main() {
 
 	// http
 	handlerByFilter := func(validator func(QuakeServer) bool) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) {
-			response(Filter(servers, validator), w, r)
-		}
+		return func(w http.ResponseWriter, r *http.Request) { response(Filter(servers, validator), w, r) }
 	}
 
-	serversHandler := handlerByFilter(isNormalServer)
-	proxiesHandler := handlerByFilter(isProxyServer)
-	qtvHandler := handlerByFilter(isQtvServer)
+	handlerByMapTransform := func(mapTransform func([]QuakeServer) map[string]string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) { response(mapTransform(servers), w, r) }
+	}
 
-	serversToQtvHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response(serverAddressToQtvMap(servers), w, r)
-	})
-
-	qtvToServersHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		response(qtvToServerAddressMap(servers), w, r)
-	})
+	api := make(map[string]http.HandlerFunc, 0)
+	api["/api/v3/servers"] = handlerByFilter(isNormalServer)
+	api["/api/v3/proxies"] = handlerByFilter(isProxyServer)
+	api["/api/v3/qtv"] = handlerByFilter(isQtvServer)
+	api["/api/v3/server_to_qtv"] = handlerByMapTransform(serverAddressToQtvMap)
+	api["/api/v3/qtv_to_server"] = handlerByMapTransform(qtvToServerAddressMap)
 
 	cacheClient := getHttpCacheClient()
-	http.Handle("/api/v3/servers", cacheClient.Middleware(serversHandler))
-	http.Handle("/api/v3/proxies", cacheClient.Middleware(proxiesHandler))
-	http.Handle("/api/v3/qtv", cacheClient.Middleware(qtvHandler))
-	http.Handle("/api/v3/server_to_qtv", cacheClient.Middleware(serversToQtvHandler))
-	http.Handle("/api/v3/qtv_to_server", cacheClient.Middleware(qtvToServersHandler))
+	for url, handler := range api {
+		http.Handle(url, cacheClient.Middleware(handler))
+	}
+
 	http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
 }
