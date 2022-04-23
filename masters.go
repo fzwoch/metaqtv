@@ -9,13 +9,12 @@ import (
 	"sync"
 )
 
-var (
-	requestStatusSequence = []byte{0x63, 0x0a, 0x00}
-	validResponseSequence = []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
-)
-
 func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]SocketAddress, error) {
-	addresses := make([]SocketAddress, 0)
+	var (
+		requestStatusSequence = []byte{0x63, 0x0a, 0x00}
+		validResponseSequence = []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
+		addresses             = make([]SocketAddress, 0)
+	)
 
 	conn, err := net.Dial("udp4", socketAddress)
 	if err != nil {
