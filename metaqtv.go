@@ -248,7 +248,7 @@ func main() {
 						return false
 					})
 
-					qtv := Server{
+					server_ := Server{
 						Title:          "",
 						Description:    "",
 						Ip:             ip.String(),
@@ -261,30 +261,30 @@ func main() {
 						keepaliveCount: keepalive,
 					}
 
-					qtv.QTV = append(qtv.QTV, QTV{
+					server_.QTV = append(server_.QTV, QTV{
 						Host:       fields[2],
 						Address:    fields[3],
 						Spectators: make([]string, 0),
 					})
 
 					for i := 0; i < len(settings)-1; i += 2 {
-						qtv.Settings[settings[i]] = settings[i+1]
+						server_.Settings[settings[i]] = settings[i+1]
 					}
 
-					if val, ok := qtv.Settings["hostname"]; ok {
-						qtv.Settings["hostname"] = quakeTextToPlainText(val)
-						qtv.Title = qtv.Settings["hostname"]
+					if val, ok := server_.Settings["hostname"]; ok {
+						server_.Settings["hostname"] = quakeTextToPlainText(val)
+						server_.Title = server_.Settings["hostname"]
 					}
-					if val, ok := qtv.Settings["map"]; ok {
-						qtv.Map = val
+					if val, ok := server_.Settings["map"]; ok {
+						server_.Map = val
 					}
-					if val, ok := qtv.Settings["maxclients"]; ok {
+					if val, ok := server_.Settings["maxclients"]; ok {
 						value, _ := strconv.Atoi(val)
-						qtv.MaxPlayers = value
+						server_.MaxPlayers = value
 					}
-					if val, ok := qtv.Settings["maxspectators"]; ok {
+					if val, ok := server_.Settings["maxspectators"]; ok {
 						value, _ := strconv.Atoi(val)
-						qtv.MaxSpectators = value
+						server_.MaxSpectators = value
 					}
 
 					for scanner.Scan() {
@@ -303,18 +303,18 @@ func main() {
 						}
 
 						if client.IsSpec {
-							qtv.Spectators = append(qtv.Spectators, Spectator{
+							server_.Spectators = append(server_.Spectators, Spectator{
 								Name:    client.Name,
 								NameInt: client.NameInt,
 								IsBot:   client.IsBot,
 							})
 						} else {
-							qtv.Players = append(qtv.Players, client.Player)
+							server_.Players = append(server_.Players, client.Player)
 						}
 					}
 
 					mutex.Lock()
-					allServers[server] = qtv
+					allServers[server] = server_
 					mutex.Unlock()
 				}(server)
 			}
