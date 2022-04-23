@@ -1,5 +1,9 @@
 [
   {
+    "host": "master.quakeworld.nu",
+    "port": 27000
+  },
+  {
     "host": "master.quakeservers.net",
     "port": 27000
   },
