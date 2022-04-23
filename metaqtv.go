@@ -58,7 +58,7 @@ func main() {
 
 	go func() {
 
-		allServers := make(map[SocketAddress]Server)
+		allServers := make(map[SocketAddress]QuakeServer)
 
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
 
@@ -248,12 +248,12 @@ func main() {
 						return false
 					})
 
-					server_ := newServer()
+					server_ := newQuakeServer()
 					server_.SocketAddress = ip.String() + ":" + strconv.Itoa(int(server.Port))
 					server_.Port = server.Port
 					server_.keepaliveCount = keepalive
 
-					server_.QTV = append(server_.QTV, QTV{
+					server_.QTV = append(server_.QTV, QtvServer{
 						Host:       fields[2],
 						Address:    fields[3],
 						Spectators: make([]string, 0),
@@ -317,7 +317,7 @@ func main() {
 			go func() {
 				defer wg.Done()
 
-				jsonServers := make([]Server, 0)
+				jsonServers := make([]QuakeServer, 0)
 
 				for key, server := range allServers {
 					if server.keepaliveCount <= 0 {

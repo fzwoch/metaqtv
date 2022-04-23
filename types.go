@@ -27,14 +27,14 @@ type Spectator struct {
 	IsBot   bool
 }
 
-type QTV struct {
+type QtvServer struct {
 	Host          string
 	Address       string
 	Numspectators int
 	Spectators    []string
 }
 
-type Server struct {
+type QuakeServer struct {
 	Title         string
 	Description   string
 	Ip            string `json:"IpAddress"`
@@ -49,13 +49,13 @@ type Server struct {
 	Players       []Player
 	Spectators    []Spectator
 	Settings      map[string]string
-	QTV           []QTV
+	QTV           []QtvServer
 
 	keepaliveCount int
 }
 
-func newServer() Server {
-	return Server{
+func newQuakeServer() QuakeServer {
+	return QuakeServer{
 		Title:         "",
 		Description:   "",
 		Ip:            "",
@@ -64,7 +64,7 @@ func newServer() Server {
 		Settings:      map[string]string{},
 		Players:       make([]Player, 0),
 		Spectators:    make([]Spectator, 0),
-		QTV:           make([]QTV, 0),
+		QTV:           make([]QtvServer, 0),
 	}
 }
 
