@@ -30,7 +30,7 @@ type Spectator struct {
 }
 
 type QtvServer struct {
-	Host          string
+	Title         string
 	Address       string
 	Numspectators int
 	Spectators    []string
@@ -48,7 +48,7 @@ type QuakeServer struct {
 	Players       []Player
 	Spectators    []Spectator
 	Settings      map[string]string
-	QTV           []QtvServer
+	QtvAddress    string
 
 	keepaliveCount int
 }
@@ -61,7 +61,7 @@ func newQuakeServer() QuakeServer {
 		Settings:    map[string]string{},
 		Players:     make([]Player, 0),
 		Spectators:  make([]Spectator, 0),
-		QTV:         make([]QtvServer, 0),
+		QtvAddress:  "",
 	}
 }
 

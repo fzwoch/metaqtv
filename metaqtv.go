@@ -6,12 +6,7 @@
 package main
 
 import (
-	"bufio"
-	"bytes"
-	"encoding/csv"
 	"encoding/json"
-	"log"
-	"net"
 	"net/http"
 	"os"
 	"strconv"
@@ -56,159 +51,10 @@ func main() {
 				go func(serverAddress SocketAddress) {
 					defer wg.Done()
 
-					conn, err := net.Dial("udp4", serverAddress.toString())
-					if err != nil {
-						log.Println(err)
-						return
-					}
-					defer conn.Close()
-
-					buffer := make([]byte, bufferMaxSize)
-					bufferLength := 0
-
-					for i := 0; i < conf.retries; i++ {
-						conn.SetDeadline(timeInFuture(conf.timeout))
-						qtvServerStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a}
-						_, err = conn.Write(qtvServerStatusSequence)
-						if err != nil {
-							log.Println(err)
-							return
-						}
-
-						conn.SetDeadline(timeInFuture(conf.timeout))
-						bufferLength, err = conn.Read(buffer)
-						if err != nil {
-							continue
-						}
-
-						break
-					}
+					qserver, err := GetServerInfo(serverAddress, conf.retries, conf.timeout, conf.keepalive)
 
 					if err != nil {
-						// no logging here. it seems that servers may not reply if they do not support
-						// this specific "32" status request.
 						return
-					}
-
-					expectedQtvStatusResponse := []byte{0xff, 0xff, 0xff, 0xff, 'n', 'q', 't', 'v'}
-					actualQtvStatusResponse := buffer[:len(expectedQtvStatusResponse)]
-					isCorrectQtvResponse := bytes.Equal(actualQtvStatusResponse, expectedQtvStatusResponse)
-					if !isCorrectQtvResponse {
-						// some servers react to the specific "32" status message but will send the regular
-						// status message because they misunderstood our command.
-						return
-					}
-
-					reader := csv.NewReader(strings.NewReader(string(buffer[5:bufferLength])))
-					reader.Comma = ' '
-
-					qtvFields, err := reader.Read()
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					if qtvFields[3] == "" {
-						// these are the servers that are not configured correctly,
-						// that means they are not reporting their qtv ip as they should.
-						return
-					}
-
-					for i := 0; i < conf.retries; i++ {
-						conn.SetDeadline(timeInFuture(conf.timeout))
-						serverStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a}
-						_, err = conn.Write(serverStatusSequence)
-						if err != nil {
-							log.Println(err)
-							return
-						}
-
-						conn.SetDeadline(timeInFuture(conf.timeout))
-						bufferLength, err = conn.Read(buffer)
-						if err != nil {
-							continue
-						}
-
-						break
-					}
-
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					expectedStatusResponse := []byte{0xff, 0xff, 0xff, 0xff, 'n', '\\'}
-					actualStatusResponse := buffer[:len(expectedStatusResponse)]
-					isCorrectResponse := bytes.Equal(actualStatusResponse, expectedStatusResponse)
-					if !isCorrectResponse {
-						log.Println(serverAddress.toString() + ": Response error")
-						return
-					}
-
-					scanner := bufio.NewScanner(strings.NewReader(string(buffer[6:bufferLength])))
-					scanner.Scan()
-
-					settings := strings.FieldsFunc(scanner.Text(), func(r rune) bool {
-						if r == '\\' {
-							return true
-						}
-						return false
-					})
-
-					qserver := newQuakeServer()
-					qserver.Address = serverAddress.toString()
-					qserver.keepaliveCount = conf.keepalive
-
-					qserver.QTV = append(qserver.QTV, QtvServer{
-						Host:       qtvFields[2],
-						Address:    qtvFields[3],
-						Spectators: make([]string, 0),
-					})
-
-					for i := 0; i < len(settings)-1; i += 2 {
-						qserver.Settings[settings[i]] = settings[i+1]
-					}
-
-					if val, ok := qserver.Settings["hostname"]; ok {
-						qserver.Settings["hostname"] = quakeTextToPlainText(val)
-						qserver.Title = qserver.Settings["hostname"]
-					}
-					if val, ok := qserver.Settings["map"]; ok {
-						qserver.Map = val
-					}
-					if val, ok := qserver.Settings["maxclients"]; ok {
-						value, _ := strconv.Atoi(val)
-						qserver.MaxPlayers = value
-					}
-					if val, ok := qserver.Settings["maxspectators"]; ok {
-						value, _ := strconv.Atoi(val)
-						qserver.MaxSpectators = value
-					}
-
-					for scanner.Scan() {
-						reader := csv.NewReader(strings.NewReader(scanner.Text()))
-						reader.Comma = ' '
-
-						clientRecord, err := reader.Read()
-						if err != nil {
-							log.Println(err)
-							return
-						}
-
-						client, err := parseClientRecord(clientRecord)
-						if err != nil {
-							continue
-						}
-
-						if client.IsSpec {
-							qserver.Spectators = append(qserver.Spectators, Spectator{
-								Name:    client.Name,
-								NameInt: client.NameInt,
-								IsBot:   client.IsBot,
-							})
-						} else {
-							qserver.Players = append(qserver.Players, client.Player)
-						}
 					}
 
 					mutex.Lock()
