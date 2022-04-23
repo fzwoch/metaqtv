@@ -38,10 +38,9 @@ func isBotPing(ping int) bool {
 func parseClientRecord(clientRecord []string) (Client, error) {
 	nameRawStr := clientRecord[ColIndexName]
 
-	isSpec := false
-	if strings.HasPrefix(nameRawStr, SpectatorPrefix) {
+	isSpec := strings.HasPrefix(nameRawStr, SpectatorPrefix)
+	if isSpec {
 		nameRawStr = strings.TrimPrefix(nameRawStr, SpectatorPrefix)
-		isSpec = true
 	}
 
 	name := quakeTextToPlainText(nameRawStr)
