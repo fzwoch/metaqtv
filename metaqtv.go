@@ -115,7 +115,7 @@ func main() {
 					actualResponseSequence := buffer[:len(validResponseSequence)]
 					isValidResponseSequence := bytes.Equal(actualResponseSequence, validResponseSequence)
 					if !isValidResponseSequence {
-						log.Println(master.Hostname + ":" + strconv.Itoa(master.Port) + ": Response error")
+						log.Println(master.SocketAddress() + ": Response error")
 						return
 					}
 
