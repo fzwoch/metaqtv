@@ -6,28 +6,11 @@
 package main
 
 import (
-	"encoding/json"
 	"net/http"
-	"os"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
-
-	"github.com/victorspringer/http-cache"
-	"github.com/victorspringer/http-cache/adapter/memory"
 )
-
-func getMasterServersFromJsonFile(filePath string) []SocketAddress {
-	jsonFile, err := os.ReadFile(filePath)
-	panicIf(err)
-
-	var result []SocketAddress
-	err = json.Unmarshal(jsonFile, &result)
-	panicIf(err)
-
-	return result
-}
 
 func main() {
 	// conf
@@ -59,11 +42,11 @@ func main() {
 	})
 
 	proxiesHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		respond(Filter(servers, isProxy), w, r)
+		respond(Filter(servers, isProxyServer), w, r)
 	})
 
 	qtvHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		respond(Filter(servers, isQtv), w, r)
+		respond(Filter(servers, isQtvServer), w, r)
 	})
 
 	cacheClient := getHttpCacheClient()
@@ -71,45 +54,4 @@ func main() {
 	http.Handle("/api/v3/proxies", cacheClient.Middleware(proxiesHandler))
 	http.Handle("/api/v3/qtv", cacheClient.Middleware(qtvHandler))
 	http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
-}
-
-func isNormalServer(server QuakeServer) bool {
-	return !(isQtv(server) || isProxy(server))
-}
-
-func isProxy(server QuakeServer) bool {
-	return strings.HasPrefix(server.Settings["*version"], "qwfwd")
-}
-
-func isQtv(server QuakeServer) bool {
-	return strings.HasPrefix(server.Settings["*version"], "QTV")
-}
-
-func respond(servers []QuakeServer, response http.ResponseWriter, request *http.Request) {
-	response.Header().Set("Content-Type", "application/json")
-
-	serversAsJson, _ := json.MarshalIndent(servers, "", "\t")
-	responseData := serversAsJson
-
-	acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
-
-	if acceptsGzipEncoding {
-		response.Header().Set("Content-Encoding", "gzip")
-		responseData = gzipCompress(responseData)
-	}
-
-	response.Write(responseData)
-}
-
-func getHttpCacheClient() *cache.Client {
-	memcached, _ := memory.NewAdapter(
-		memory.AdapterWithAlgorithm(memory.LRU),
-		memory.AdapterWithCapacity(10000),
-	)
-	cacheClient, _ := cache.NewClient(
-		cache.ClientWithAdapter(memcached),
-		cache.ClientWithTTL(5*time.Second),
-	)
-
-	return cacheClient
 }

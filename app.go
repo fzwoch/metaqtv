@@ -1,6 +1,10 @@
 package main
 
-import "flag"
+import (
+	"encoding/json"
+	"flag"
+	"os"
+)
 
 type AppConfig struct {
 	httpPort          int
@@ -31,4 +35,15 @@ func getConfig() AppConfig {
 		retries:           retries,
 		masterServersFile: "master_servers.json",
 	}
+}
+
+func getMasterServersFromJsonFile(filePath string) []SocketAddress {
+	jsonFile, err := os.ReadFile(filePath)
+	panicIf(err)
+
+	var result []SocketAddress
+	err = json.Unmarshal(jsonFile, &result)
+	panicIf(err)
+
+	return result
 }
