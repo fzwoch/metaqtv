@@ -55,7 +55,7 @@ func main() {
 
 	// http
 	serversHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		respond(servers, w, r)
+		respond(Filter(servers, isNormalServer), w, r)
 	})
 
 	proxiesHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -71,6 +71,10 @@ func main() {
 	http.Handle("/api/v3/proxies", cacheClient.Middleware(proxiesHandler))
 	http.Handle("/api/v3/qtv", cacheClient.Middleware(qtvHandler))
 	http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
+}
+
+func isNormalServer(server QuakeServer) bool {
+	return !(isQtv(server) || isProxy(server))
 }
 
 func isProxy(server QuakeServer) bool {
