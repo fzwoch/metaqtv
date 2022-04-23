@@ -8,7 +8,6 @@ type AppConfig struct {
 	timeout           int
 	retries           int
 	masterServersFile string
-	keepalive         int
 }
 
 func getConfig() AppConfig {
@@ -17,14 +16,12 @@ func getConfig() AppConfig {
 		updateInterval int
 		timeout        int
 		retries        int
-		keepalive      int
 	)
 
 	flag.IntVar(&httpPort, "port", 3000, "HTTP listen port")
 	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
-	flag.IntVar(&timeout, "timeout", 500, "UDP timeout in milliseconds")
-	flag.IntVar(&retries, "retry", 5, "UDP retry count")
-	flag.IntVar(&keepalive, "keepalive", 3, "Keep server alive for N tries")
+	flag.IntVar(&timeout, "timeout", 500, "Timeout in milliseconds")
+	flag.IntVar(&retries, "retry", 3, "Retry count")
 	flag.Parse()
 
 	return AppConfig{
@@ -32,7 +29,6 @@ func getConfig() AppConfig {
 		updateInterval:    updateInterval,
 		timeout:           timeout,
 		retries:           retries,
-		keepalive:         keepalive,
 		masterServersFile: "master_servers.json",
 	}
 }
