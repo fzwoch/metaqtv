@@ -10,7 +10,7 @@ import (
 	"github.com/victorspringer/http-cache/adapter/memory"
 )
 
-func respond(servers []QuakeServer, response http.ResponseWriter, request *http.Request) {
+func serversResponse(servers []QuakeServer, response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
 	serversAsJson, _ := json.MarshalIndent(servers, "", "\t")
