@@ -13,6 +13,9 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/victorspringer/http-cache"
+	"github.com/victorspringer/http-cache/adapter/memory"
 )
 
 func getMasterServersFromJsonFile(filePath string) []SocketAddress {
@@ -29,9 +32,12 @@ func getMasterServersFromJsonFile(filePath string) []SocketAddress {
 const bufferMaxSize = 8192
 
 func main() {
+	// conf
 	conf := getConfig()
+
+	// servers
 	masters := getMasterServersFromJsonFile(conf.masterServersFile)
-	responseJsonData := newMutexStore()
+	servers := make([]QuakeServer, 0)
 
 	go func() {
 		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
@@ -43,29 +49,39 @@ func main() {
 			go func() {
 				defer wg.Done()
 
-				quakeServerAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
-				quakeServers := ReadServers(quakeServerAddresses, conf.retries, conf.timeout)
-
-				serversAsJson, err := json.MarshalIndent(quakeServers, "", "\t")
-				panicIf(err)
-
-				responseJsonData.Write(serversAsJson)
+				serverAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
+				servers = ReadServers(serverAddresses, conf.retries, conf.timeout)
 			}()
-
 		}
 	}()
 
-	http.HandleFunc("/api/v3/servers", getApiCallback(responseJsonData))
+	// http
+	cacheClient := getHttpCacheClient()
 
-	var err error
-	err = http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
-	panicIf(err)
+	serversHandler := cacheClient.Middleware(http.HandlerFunc(getApiCallback(&servers)))
+	http.Handle("/api/v3/servers", serversHandler)
+	http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
 }
 
-func getApiCallback(store *MutexStore) func(response http.ResponseWriter, request *http.Request) {
+func getHttpCacheClient() *cache.Client {
+	memcached, _ := memory.NewAdapter(
+		memory.AdapterWithAlgorithm(memory.LRU),
+		memory.AdapterWithCapacity(10000),
+	)
+	cacheClient, _ := cache.NewClient(
+		cache.ClientWithAdapter(memcached),
+		cache.ClientWithTTL(10*time.Second),
+	)
+
+	return cacheClient
+}
+
+func getApiCallback(servers *[]QuakeServer) func(response http.ResponseWriter, request *http.Request) {
 	return func(response http.ResponseWriter, request *http.Request) {
 		response.Header().Set("Content-Type", "application/json")
-		responseData := store.Read()
+
+		serversAsJson, _ := json.MarshalIndent(servers, "", "\t")
+		responseData := serversAsJson
 
 		acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
 
@@ -74,7 +90,6 @@ func getApiCallback(store *MutexStore) func(response http.ResponseWriter, reques
 			responseData = gzipCompress(responseData)
 		}
 
-		_, err := response.Write(responseData)
-		panicIf(err)
+		response.Write(responseData)
 	}
 }
