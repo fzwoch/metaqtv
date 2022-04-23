@@ -1,6 +1,7 @@
 package main
 
 import (
+	"net"
 	"strconv"
 	"sync"
 )
@@ -73,6 +74,12 @@ type NetSocketAddress struct {
 	Ip   [4]byte
 	Port uint16
 }
+
+func (nsa NetSocketAddress) toString() string {
+	ip := net.IPv4(nsa.Ip[0], nsa.Ip[1], nsa.Ip[2], nsa.Ip[3])
+	return ip.String() + ":" + strconv.Itoa(int(nsa.Port))
+}
+
 type MasterServer struct {
 	Hostname string `json:"hostname"`
 	Port     int    `json:"port"`

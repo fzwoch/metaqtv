@@ -146,9 +146,7 @@ func main() {
 				go func(server NetSocketAddress) {
 					defer wg.Done()
 
-					ip := net.IPv4(server.Ip[0], server.Ip[1], server.Ip[2], server.Ip[3])
-
-					conn, err := net.Dial("udp4", ip.String()+":"+strconv.Itoa(int(server.Port)))
+					conn, err := net.Dial("udp4", server.toString())
 					if err != nil {
 						log.Println(err)
 						return
@@ -233,7 +231,7 @@ func main() {
 					actualStatusResponse := buffer[:len(expectedStatusResponse)]
 					isCorrectResponse := bytes.Equal(actualStatusResponse, expectedStatusResponse)
 					if !isCorrectResponse {
-						log.Println(ip.String() + ":" + strconv.Itoa(int(server.Port)) + ": Response error")
+						log.Println(server.toString() + ": Response error")
 						return
 					}
 
@@ -248,7 +246,7 @@ func main() {
 					})
 
 					qserver := newQuakeServer()
-					qserver.SocketAddress = ip.String() + ":" + strconv.Itoa(int(server.Port))
+					qserver.SocketAddress = server.toString()
 					qserver.Port = server.Port
 					qserver.keepaliveCount = keepalive
 
