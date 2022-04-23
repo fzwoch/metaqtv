@@ -11,6 +11,7 @@ type Player struct {
 	NameInt []int
 	Team    string
 	TeamInt []int
+	Skin    string
 	Colors  [2]int
 	Frags   int
 	Ping    int

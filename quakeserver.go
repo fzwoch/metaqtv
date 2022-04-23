@@ -217,6 +217,7 @@ func parseClientRecord(clientRecord []string) (Client, error) {
 		IndexTime               = 2
 		IndexPing               = 3
 		IndexName               = 4
+		IndexSkin               = 5
 		IndexColorTop           = 6
 		IndexColorBottom        = 7
 		IndexTeam               = 8
@@ -246,6 +247,7 @@ func parseClientRecord(clientRecord []string) (Client, error) {
 			NameInt: nameInt,
 			Team:    team,
 			TeamInt: teamInt,
+			Skin:    clientRecord[IndexSkin],
 			Colors:  [2]int{colorTop, colorBottom},
 			Frags:   frags,
 			Ping:    ping,
