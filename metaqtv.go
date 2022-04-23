@@ -39,7 +39,7 @@ func main() {
 	jsonOut := newMutexStore()
 
 	go func() {
-		allQuakeServers := make(map[SocketAddress]QuakeServer)
+		quakeServers := make(map[SocketAddress]QuakeServer)
 		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
 
 		for ; true; <-ticker.C {
@@ -50,13 +50,13 @@ func main() {
 
 			quakeServerAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
 
-			for _, address := range quakeServerAddresses {
+			for _, serverAddress := range quakeServerAddresses {
 				wg.Add(1)
 
-				go func(sa SocketAddress) {
+				go func(serverAddress SocketAddress) {
 					defer wg.Done()
 
-					conn, err := net.Dial("udp4", sa.toString())
+					conn, err := net.Dial("udp4", serverAddress.toString())
 					if err != nil {
 						log.Println(err)
 						return
@@ -141,7 +141,7 @@ func main() {
 					actualStatusResponse := buffer[:len(expectedStatusResponse)]
 					isCorrectResponse := bytes.Equal(actualStatusResponse, expectedStatusResponse)
 					if !isCorrectResponse {
-						log.Println(sa.toString() + ": Response error")
+						log.Println(serverAddress.toString() + ": Response error")
 						return
 					}
 
@@ -156,7 +156,7 @@ func main() {
 					})
 
 					qserver := newQuakeServer()
-					qserver.Address = sa.toString()
+					qserver.Address = serverAddress.toString()
 					qserver.keepaliveCount = conf.keepalive
 
 					qserver.QTV = append(qserver.QTV, QtvServer{
@@ -212,9 +212,9 @@ func main() {
 					}
 
 					mutex.Lock()
-					allQuakeServers[sa] = qserver
+					quakeServers[serverAddress] = qserver
 					mutex.Unlock()
-				}(address)
+				}(serverAddress)
 			}
 
 			wg.Wait()
@@ -225,9 +225,9 @@ func main() {
 
 				jsonServers := make([]QuakeServer, 0)
 
-				for key, server := range allQuakeServers {
+				for key, server := range quakeServers {
 					if server.keepaliveCount <= 0 {
-						delete(allQuakeServers, key)
+						delete(quakeServers, key)
 						continue
 					}
 
@@ -235,7 +235,7 @@ func main() {
 
 					jsonServers = append(jsonServers, server)
 
-					allQuakeServers[key] = server
+					quakeServers[key] = server
 				}
 
 				jsonTmp, err := json.MarshalIndent(jsonServers, "", "\t")
