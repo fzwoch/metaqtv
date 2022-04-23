@@ -67,7 +67,7 @@ func main() {
 				mut sync.Mutex
 			)
 
-			servers := make(map[SocketAddress]struct{})
+			addresses := make([]SocketAddress, 0)
 
 			for _, master := range masters {
 				wg.Add(1)
@@ -129,9 +129,7 @@ func main() {
 							break
 						}
 
-						address := rawAddress.toSocketAddress()
-
-						servers[address] = struct{}{}
+						addresses = append(addresses, rawAddress.toSocketAddress())
 					}
 
 					mut.Unlock()
@@ -140,7 +138,7 @@ func main() {
 
 			wg.Wait()
 
-			for server := range servers {
+			for _, address := range addresses {
 				wg.Add(1)
 
 				go func(sa SocketAddress) {
@@ -304,7 +302,7 @@ func main() {
 					mut.Lock()
 					allQuakeServers[sa] = qserver
 					mut.Unlock()
-				}(server)
+				}(address)
 			}
 
 			wg.Wait()
