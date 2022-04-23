@@ -22,7 +22,7 @@ Usage of metaqtv:
 
 ## Config
 
-Application reads `metaqtv.json` from the current working directory. This config file lists Quake master servers which are queried.
+Application reads `master_servers.json` from the current working directory. This config file lists Quake master servers which are queried.
 
 ```json
 [
