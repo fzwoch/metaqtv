@@ -195,13 +195,13 @@ func main() {
 					reader := csv.NewReader(strings.NewReader(string(buffer[5:bufferLength])))
 					reader.Comma = ' '
 
-					fields, err := reader.Read()
+					qtvFields, err := reader.Read()
 					if err != nil {
 						log.Println(err)
 						return
 					}
 
-					if fields[3] == "" {
+					if qtvFields[3] == "" {
 						// these are the servers that are not configured correctly,
 						// that means they are not reporting their qtv ip as they should.
 						return
@@ -254,8 +254,8 @@ func main() {
 					server_.keepaliveCount = keepalive
 
 					server_.QTV = append(server_.QTV, QtvServer{
-						Host:       fields[2],
-						Address:    fields[3],
+						Host:       qtvFields[2],
+						Address:    qtvFields[3],
 						Spectators: make([]string, 0),
 					})
 
