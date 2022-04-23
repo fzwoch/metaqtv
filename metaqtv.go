@@ -11,7 +11,6 @@ import (
 	"encoding/binary"
 	"encoding/csv"
 	"encoding/json"
-	"flag"
 	"log"
 	"net"
 	"net/http"
@@ -36,30 +35,13 @@ func getMasterServersFromJsonFile(filePath string) []SocketAddress {
 const bufferMaxSize = 8192
 
 func main() {
-	var (
-		port                      int
-		updateInterval            int
-		timeout                   int
-		retries                   int
-		masterServersJsonFilePath string
-		keepalive                 int
-	)
-
-	flag.IntVar(&port, "port", 3000, "HTTP listen port")
-	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
-	flag.IntVar(&timeout, "timeout", 500, "UDP timeout in milliseconds")
-	flag.IntVar(&retries, "retry", 5, "UDP retry count")
-	flag.StringVar(&masterServersJsonFilePath, "config", "master_servers.json", "Master servers file")
-	flag.IntVar(&keepalive, "keepalive", 3, "Keep server alive for N tries")
-	flag.Parse()
-
-	var masters = getMasterServersFromJsonFile(masterServersJsonFilePath)
-
+	conf := getConfig()
+	masters := getMasterServersFromJsonFile(conf.masterServersFile)
 	jsonOut := newMutexStore()
 
 	go func() {
 		allQuakeServers := make(map[SocketAddress]QuakeServer)
-		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
+		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
 
 		for ; true; <-ticker.C {
 			var (
@@ -86,8 +68,8 @@ func main() {
 					buffer := make([]byte, bufferMaxSize)
 					bufferLength := 0
 
-					for i := 0; i < retries; i++ {
-						conn.SetDeadline(timeInFuture(timeout))
+					for i := 0; i < conf.retries; i++ {
+						conn.SetDeadline(timeInFuture(conf.timeout))
 						mastersServerStatusSequence := []byte{0x63, 0x0a, 0x00}
 						_, err = conn.Write(mastersServerStatusSequence)
 						if err != nil {
@@ -95,7 +77,7 @@ func main() {
 							return
 						}
 
-						conn.SetDeadline(timeInFuture(timeout))
+						conn.SetDeadline(timeInFuture(conf.timeout))
 						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue
@@ -154,8 +136,8 @@ func main() {
 					buffer := make([]byte, bufferMaxSize)
 					bufferLength := 0
 
-					for i := 0; i < retries; i++ {
-						conn.SetDeadline(timeInFuture(timeout))
+					for i := 0; i < conf.retries; i++ {
+						conn.SetDeadline(timeInFuture(conf.timeout))
 						qtvServerStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a}
 						_, err = conn.Write(qtvServerStatusSequence)
 						if err != nil {
@@ -163,7 +145,7 @@ func main() {
 							return
 						}
 
-						conn.SetDeadline(timeInFuture(timeout))
+						conn.SetDeadline(timeInFuture(conf.timeout))
 						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue
@@ -202,8 +184,8 @@ func main() {
 						return
 					}
 
-					for i := 0; i < retries; i++ {
-						conn.SetDeadline(timeInFuture(timeout))
+					for i := 0; i < conf.retries; i++ {
+						conn.SetDeadline(timeInFuture(conf.timeout))
 						serverStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a}
 						_, err = conn.Write(serverStatusSequence)
 						if err != nil {
@@ -211,7 +193,7 @@ func main() {
 							return
 						}
 
-						conn.SetDeadline(timeInFuture(timeout))
+						conn.SetDeadline(timeInFuture(conf.timeout))
 						bufferLength, err = conn.Read(buffer)
 						if err != nil {
 							continue
@@ -245,7 +227,7 @@ func main() {
 
 					qserver := newQuakeServer()
 					qserver.Address = sa.toString()
-					qserver.keepaliveCount = keepalive
+					qserver.keepaliveCount = conf.keepalive
 
 					qserver.QTV = append(qserver.QTV, QtvServer{
 						Host:       qtvFields[2],
@@ -339,7 +321,7 @@ func main() {
 	http.HandleFunc("/api/v3/servers", getApiCallback(jsonOut))
 
 	var err error
-	err = http.ListenAndServe(":"+strconv.Itoa(port), nil)
+	err = http.ListenAndServe(":"+strconv.Itoa(conf.httpPort), nil)
 	panicIf(err)
 }
 
