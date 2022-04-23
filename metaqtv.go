@@ -248,35 +248,35 @@ func main() {
 						return false
 					})
 
-					server_ := newQuakeServer()
-					server_.SocketAddress = ip.String() + ":" + strconv.Itoa(int(server.Port))
-					server_.Port = server.Port
-					server_.keepaliveCount = keepalive
+					qserver := newQuakeServer()
+					qserver.SocketAddress = ip.String() + ":" + strconv.Itoa(int(server.Port))
+					qserver.Port = server.Port
+					qserver.keepaliveCount = keepalive
 
-					server_.QTV = append(server_.QTV, QtvServer{
+					qserver.QTV = append(qserver.QTV, QtvServer{
 						Host:       qtvFields[2],
 						Address:    qtvFields[3],
 						Spectators: make([]string, 0),
 					})
 
 					for i := 0; i < len(settings)-1; i += 2 {
-						server_.Settings[settings[i]] = settings[i+1]
+						qserver.Settings[settings[i]] = settings[i+1]
 					}
 
-					if val, ok := server_.Settings["hostname"]; ok {
-						server_.Settings["hostname"] = quakeTextToPlainText(val)
-						server_.Title = server_.Settings["hostname"]
+					if val, ok := qserver.Settings["hostname"]; ok {
+						qserver.Settings["hostname"] = quakeTextToPlainText(val)
+						qserver.Title = qserver.Settings["hostname"]
 					}
-					if val, ok := server_.Settings["map"]; ok {
-						server_.Map = val
+					if val, ok := qserver.Settings["map"]; ok {
+						qserver.Map = val
 					}
-					if val, ok := server_.Settings["maxclients"]; ok {
+					if val, ok := qserver.Settings["maxclients"]; ok {
 						value, _ := strconv.Atoi(val)
-						server_.MaxPlayers = value
+						qserver.MaxPlayers = value
 					}
-					if val, ok := server_.Settings["maxspectators"]; ok {
+					if val, ok := qserver.Settings["maxspectators"]; ok {
 						value, _ := strconv.Atoi(val)
-						server_.MaxSpectators = value
+						qserver.MaxSpectators = value
 					}
 
 					for scanner.Scan() {
@@ -295,18 +295,18 @@ func main() {
 						}
 
 						if client.IsSpec {
-							server_.Spectators = append(server_.Spectators, Spectator{
+							qserver.Spectators = append(qserver.Spectators, Spectator{
 								Name:    client.Name,
 								NameInt: client.NameInt,
 								IsBot:   client.IsBot,
 							})
 						} else {
-							server_.Players = append(server_.Players, client.Player)
+							qserver.Players = append(qserver.Players, client.Player)
 						}
 					}
 
 					mutex.Lock()
-					allServers[server] = server_
+					allServers[server] = qserver
 					mutex.Unlock()
 				}(server)
 			}
