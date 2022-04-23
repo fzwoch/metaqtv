@@ -77,8 +77,7 @@ func main() {
 				go func(master MasterServer) {
 					defer wg.Done()
 
-					masterAddress := master.Hostname + ":" + strconv.Itoa(master.Port)
-					conn, err := net.Dial("udp4", masterAddress)
+					conn, err := net.Dial("udp4", master.SocketAddress())
 
 					if err != nil {
 						log.Println(err)

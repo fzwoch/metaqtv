@@ -1,6 +1,7 @@
 package main
 
 import (
+	"strconv"
 	"sync"
 )
 
@@ -75,6 +76,10 @@ type SocketAddress struct {
 type MasterServer struct {
 	Hostname string `json:"hostname"`
 	Port     int    `json:"port"`
+}
+
+func (ms MasterServer) SocketAddress() string {
+	return ms.Hostname + ":" + strconv.Itoa(ms.Port)
 }
 
 type MutexStore struct {
