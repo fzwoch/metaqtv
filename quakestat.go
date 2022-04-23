@@ -36,6 +36,12 @@ func isBotPing(ping int) bool {
 }
 
 func parseClientRecord(clientRecord []string) (Client, error) {
+	expectedPlayerColumnCount := 9
+
+	if len(clientRecord) != expectedPlayerColumnCount {
+		return Client{}, nil
+	}
+
 	nameRawStr := clientRecord[ColIndexName]
 
 	isSpec := strings.HasPrefix(nameRawStr, SpectatorPrefix)

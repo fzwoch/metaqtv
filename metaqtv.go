@@ -297,14 +297,7 @@ func main() {
 							return
 						}
 
-						expectedPlayerColumnCount := 9
-
-						if len(clientRecord) != expectedPlayerColumnCount {
-							continue
-						}
-
 						client, err := parseClientRecord(clientRecord)
-
 						if err != nil {
 							continue
 						}
