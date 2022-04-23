@@ -7,6 +7,16 @@ import (
 	"time"
 )
 
+/*func Filter[Type any](values []Type, filterFunc func(Type) bool) []Type {
+	var result []Type
+	for _, value := range values {
+		if filterFunc(value) {
+			result = append(result, value)
+		}
+	}
+	return result
+}*/
+
 func panicIf(err error) {
 	if err != nil {
 		panic(err)
