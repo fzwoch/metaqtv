@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	statusSequence        = []byte{0x63, 0x0a, 0x00}
+	requestStatusSequence = []byte{0x63, 0x0a, 0x00}
 	validResponseSequence = []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
 )
 
@@ -28,7 +28,7 @@ func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]Sock
 	for i := 0; i < retryCount; i++ {
 		conn.SetDeadline(timeInFuture(timeout))
 
-		_, err = conn.Write(statusSequence)
+		_, err = conn.Write(requestStatusSequence)
 		if err != nil {
 			return addresses, err
 		}
