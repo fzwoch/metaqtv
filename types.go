@@ -41,7 +41,6 @@ type QuakeServer struct {
 	Description   string
 	Address       string
 	Map           string
-	NumClients    int
 	NumPlayers    int
 	MaxPlayers    int
 	NumSpectators int
