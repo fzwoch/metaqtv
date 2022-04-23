@@ -204,6 +204,14 @@ func isBotPing(ping int) bool {
 }
 
 func parseClientRecord(clientRecord []string) (Client, error) {
+	expectedColumnCount := 9
+	columnCount := len(clientRecord)
+
+	if columnCount != expectedColumnCount {
+		err := errors.New(fmt.Sprintf("invalid player column count %d.", columnCount))
+		return Client{}, err
+	}
+
 	const (
 		IndexFrags              = 1
 		IndexTime               = 2
@@ -214,14 +222,6 @@ func parseClientRecord(clientRecord []string) (Client, error) {
 		IndexTeam               = 8
 		SpectatorPrefix  string = "\\s\\"
 	)
-
-	expectedColumnCount := 9
-	columnCount := len(clientRecord)
-
-	if columnCount != expectedColumnCount {
-		err := errors.New(fmt.Sprintf("invalid player column count %d.", columnCount))
-		return Client{}, err
-	}
 
 	nameRawStr := clientRecord[IndexName]
 
