@@ -10,7 +10,7 @@ import (
 	"github.com/victorspringer/http-cache/adapter/memory"
 )
 
-func response(data any, response http.ResponseWriter, request *http.Request) {
+func httpJsonResponse(data any, response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 
 	responseBody, _ := json.MarshalIndent(data, "", "\t")

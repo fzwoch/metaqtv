@@ -38,11 +38,11 @@ func main() {
 
 	// http
 	handlerByFilter := func(filterFunc func([]QuakeServer) []QuakeServer) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) { response(filterFunc(servers), w, r) }
+		return func(w http.ResponseWriter, r *http.Request) { httpJsonResponse(filterFunc(servers), w, r) }
 	}
 
 	handlerByMapping := func(mapFunc func([]QuakeServer) map[string]string) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) { response(mapFunc(servers), w, r) }
+		return func(w http.ResponseWriter, r *http.Request) { httpJsonResponse(mapFunc(servers), w, r) }
 	}
 
 	api := make(map[string]http.HandlerFunc, 0)
