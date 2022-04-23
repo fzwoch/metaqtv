@@ -6,28 +6,41 @@ import (
 )
 
 const (
-	ColIndexFrags       = 1
-	ColIndexTime        = 2
-	ColIndexPing        = 3
-	ColIndexName        = 4
-	ColIndexColorTop    = 6
-	ColIndexColorBottom = 7
-	ColIndexTeam        = 8
+	ColIndexFrags              = 1
+	ColIndexTime               = 2
+	ColIndexPing               = 3
+	ColIndexName               = 4
+	ColIndexColorTop           = 6
+	ColIndexColorBottom        = 7
+	ColIndexTeam               = 8
+	SpectatorPrefix     string = "\\s\\"
 )
+
+func isBotName(name string) bool {
+	switch name {
+	case
+		"[ServeMe]",
+		"twitch.tv/vikpe":
+		return true
+	}
+	return false
+}
+
+func isBotPing(ping int) bool {
+	switch ping {
+	case
+		10:
+		return true
+	}
+	return false
+}
 
 func parseClientRecord(clientRecord []string) (Client, error) {
 	nameRawStr := clientRecord[ColIndexName]
 
-	isBot := false
-
-	if strings.HasSuffix(nameRawStr, "[ServeMe]") {
-		isBot = true
-	}
-
 	isSpec := false
-	spectatorPrefix := "\\s\\"
-	if strings.HasPrefix(nameRawStr, spectatorPrefix) {
-		nameRawStr = strings.TrimPrefix(nameRawStr, spectatorPrefix)
+	if strings.HasPrefix(nameRawStr, SpectatorPrefix) {
+		nameRawStr = strings.TrimPrefix(nameRawStr, SpectatorPrefix)
 		isSpec = true
 	}
 
@@ -51,7 +64,7 @@ func parseClientRecord(clientRecord []string) (Client, error) {
 			Frags:   frags,
 			Ping:    ping,
 			Time:    time_,
-			IsBot:   isBot,
+			IsBot:   isBotName(name) || isBotPing(ping),
 		},
 		IsSpec: isSpec,
 	}, nil
