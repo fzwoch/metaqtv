@@ -48,6 +48,7 @@ type QuakeServer struct {
 	Title         string
 	Description   string
 	Address       string
+	QtvAddress    string
 	Map           string
 	NumPlayers    int
 	MaxPlayers    int
@@ -56,7 +57,6 @@ type QuakeServer struct {
 	Players       []Player
 	Spectators    []Spectator
 	Settings      map[string]string
-	QtvAddress    string
 }
 
 func newQuakeServer() QuakeServer {
