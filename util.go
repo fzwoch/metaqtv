@@ -7,15 +7,15 @@ import (
 	"time"
 )
 
-/*func Filter[Type any](values []Type, filterFunc func(Type) bool) []Type {
-	var result []Type
+func Filter[Type any](values []Type, filterFunc func(Type) bool) []Type {
+	var result = make([]Type, 0)
 	for _, value := range values {
 		if filterFunc(value) {
 			result = append(result, value)
 		}
 	}
 	return result
-}*/
+}
 
 func panicIf(err error) {
 	if err != nil {
