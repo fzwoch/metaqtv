@@ -34,7 +34,7 @@ func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]Sock
 	defer conn.Close()
 
 	requestStatusSequence := []byte{0x63, 0x0a, 0x00}
-	buffer := make([]byte, bufferMaxSize)
+	buffer := make([]byte, 8192)
 	bufferLength := 0
 
 	for i := 0; i < retryCount; i++ {

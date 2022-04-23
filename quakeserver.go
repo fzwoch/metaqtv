@@ -79,7 +79,7 @@ func ReadServerQtv(serverAddress SocketAddress, retries int, timeout int) (QtvSe
 	defer conn.Close()
 
 	qtvStatusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '3', '2', 0x0a}
-	buffer := make([]byte, bufferMaxSize)
+	buffer := make([]byte, 8192)
 	bufferLength := 0
 
 	for i := 0; i < retries; i++ {
@@ -177,7 +177,7 @@ func ReadServer(serverAddress SocketAddress, retries int, timeout int) (QuakeSer
 	defer conn.Close()
 
 	statusSequence := []byte{0xff, 0xff, 0xff, 0xff, 's', 't', 'a', 't', 'u', 's', ' ', '2', '3', 0x0a}
-	buffer := make([]byte, bufferMaxSize)
+	buffer := make([]byte, 8192)
 	bufferLength := 0
 
 	for i := 0; i < retries; i++ {

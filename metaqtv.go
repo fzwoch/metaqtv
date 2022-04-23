@@ -29,8 +29,6 @@ func getMasterServersFromJsonFile(filePath string) []SocketAddress {
 	return result
 }
 
-const bufferMaxSize = 8192
-
 func main() {
 	// conf
 	conf := getConfig()
