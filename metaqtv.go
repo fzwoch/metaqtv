@@ -8,7 +8,6 @@ package main
 import (
 	"bufio"
 	"bytes"
-	"encoding/binary"
 	"encoding/csv"
 	"encoding/json"
 	"log"
@@ -45,8 +44,8 @@ func main() {
 
 		for ; true; <-ticker.C {
 			var (
-				wg  sync.WaitGroup
-				mut sync.Mutex
+				wg    sync.WaitGroup
+				mutex sync.Mutex
 			)
 
 			allQuakeAddresses := make([]SocketAddress, 0)
@@ -57,64 +56,16 @@ func main() {
 				go func(sa SocketAddress) {
 					defer wg.Done()
 
-					conn, err := net.Dial("udp4", sa.toString())
-
-					if err != nil {
-						log.Println(err)
-						return
-					}
-					defer conn.Close()
-
-					buffer := make([]byte, bufferMaxSize)
-					bufferLength := 0
-
-					for i := 0; i < conf.retries; i++ {
-						conn.SetDeadline(timeInFuture(conf.timeout))
-						mastersServerStatusSequence := []byte{0x63, 0x0a, 0x00}
-						_, err = conn.Write(mastersServerStatusSequence)
-						if err != nil {
-							log.Println(err)
-							return
-						}
-
-						conn.SetDeadline(timeInFuture(conf.timeout))
-						bufferLength, err = conn.Read(buffer)
-						if err != nil {
-							continue
-						}
-
-						break
-					}
+					addresses, err := ReadMasterServer(sa.toString(), conf.retries, conf.timeout)
 
 					if err != nil {
 						log.Println(err)
 						return
 					}
 
-					validResponseSequence := []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
-					actualResponseSequence := buffer[:len(validResponseSequence)]
-					isValidResponseSequence := bytes.Equal(actualResponseSequence, validResponseSequence)
-					if !isValidResponseSequence {
-						log.Println(sa.toString() + ": Response error")
-						return
-					}
-
-					reader := bytes.NewReader(buffer[6:bufferLength])
-
-					mut.Lock()
-
-					for {
-						var rawAddress RawServerSocketAddress
-
-						err = binary.Read(reader, binary.BigEndian, &rawAddress)
-						if err != nil {
-							break
-						}
-
-						allQuakeAddresses = append(allQuakeAddresses, rawAddress.toSocketAddress())
-					}
-
-					mut.Unlock()
+					mutex.Lock()
+					allQuakeAddresses = append(allQuakeAddresses, addresses...)
+					mutex.Unlock()
 				}(master)
 			}
 
@@ -281,9 +232,9 @@ func main() {
 						}
 					}
 
-					mut.Lock()
+					mutex.Lock()
 					allQuakeServers[sa] = qserver
-					mut.Unlock()
+					mutex.Unlock()
 				}(address)
 			}
 
