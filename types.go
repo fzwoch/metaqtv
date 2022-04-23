@@ -39,9 +39,7 @@ type QtvServer struct {
 type QuakeServer struct {
 	Title         string
 	Description   string
-	Ip            string `json:"IpAddress"`
-	SocketAddress string
-	Port          uint16
+	Address       string
 	Map           string
 	NumClients    int
 	NumPlayers    int
@@ -58,26 +56,28 @@ type QuakeServer struct {
 
 func newQuakeServer() QuakeServer {
 	return QuakeServer{
-		Title:         "",
-		Description:   "",
-		Ip:            "",
-		SocketAddress: "",
-		Port:          0,
-		Settings:      map[string]string{},
-		Players:       make([]Player, 0),
-		Spectators:    make([]Spectator, 0),
-		QTV:           make([]QtvServer, 0),
+		Title:       "",
+		Description: "",
+		Address:     "",
+		Settings:    map[string]string{},
+		Players:     make([]Player, 0),
+		Spectators:  make([]Spectator, 0),
+		QTV:         make([]QtvServer, 0),
 	}
 }
 
-type NetSocketAddress struct {
-	Ip   [4]byte
-	Port uint16
+type RawServerSocketAddress struct {
+	IpParts [4]byte
+	Port    uint16
 }
 
-func (nsa NetSocketAddress) toString() string {
-	ip := net.IPv4(nsa.Ip[0], nsa.Ip[1], nsa.Ip[2], nsa.Ip[3])
-	return ip.String() + ":" + strconv.Itoa(int(nsa.Port))
+func (nsa RawServerSocketAddress) toSocketAddress() SocketAddress {
+	ip := net.IPv4(nsa.IpParts[0], nsa.IpParts[1], nsa.IpParts[2], nsa.IpParts[3]).String()
+
+	return SocketAddress{
+		Host: ip,
+		Port: int(nsa.Port),
+	}
 }
 
 type SocketAddress struct {

@@ -33,6 +33,8 @@ func getMasterServersFromJsonFile(filePath string) []SocketAddress {
 	return result
 }
 
+const bufferMaxSize = 8192
+
 func main() {
 	var (
 		port                      int
@@ -56,27 +58,24 @@ func main() {
 	jsonOut := newMutexStore()
 
 	go func() {
-
-		allQuakeServers := make(map[NetSocketAddress]QuakeServer)
-
+		allQuakeServers := make(map[SocketAddress]QuakeServer)
 		ticker := time.NewTicker(time.Duration(updateInterval) * time.Second)
 
 		for ; true; <-ticker.C {
 			var (
-				wg    sync.WaitGroup
-				mutex sync.Mutex
+				wg  sync.WaitGroup
+				mut sync.Mutex
 			)
 
-			servers := make(map[NetSocketAddress]struct{})
+			servers := make(map[SocketAddress]struct{})
 
-			bufferMaxSize := 8192
 			for _, master := range masters {
 				wg.Add(1)
 
-				go func(master SocketAddress) {
+				go func(sa SocketAddress) {
 					defer wg.Done()
 
-					conn, err := net.Dial("udp4", master.toString())
+					conn, err := net.Dial("udp4", sa.toString())
 
 					if err != nil {
 						log.Println(err)
@@ -114,26 +113,28 @@ func main() {
 					actualResponseSequence := buffer[:len(validResponseSequence)]
 					isValidResponseSequence := bytes.Equal(actualResponseSequence, validResponseSequence)
 					if !isValidResponseSequence {
-						log.Println(master.toString() + ": Response error")
+						log.Println(sa.toString() + ": Response error")
 						return
 					}
 
 					reader := bytes.NewReader(buffer[6:bufferLength])
 
-					mutex.Lock()
+					mut.Lock()
 
 					for {
-						var host NetSocketAddress
+						var rawAddress RawServerSocketAddress
 
-						err = binary.Read(reader, binary.BigEndian, &host)
+						err = binary.Read(reader, binary.BigEndian, &rawAddress)
 						if err != nil {
 							break
 						}
 
-						servers[host] = struct{}{}
+						address := rawAddress.toSocketAddress()
+
+						servers[address] = struct{}{}
 					}
 
-					mutex.Unlock()
+					mut.Unlock()
 				}(master)
 			}
 
@@ -142,10 +143,10 @@ func main() {
 			for server := range servers {
 				wg.Add(1)
 
-				go func(server NetSocketAddress) {
+				go func(sa SocketAddress) {
 					defer wg.Done()
 
-					conn, err := net.Dial("udp4", server.toString())
+					conn, err := net.Dial("udp4", sa.toString())
 					if err != nil {
 						log.Println(err)
 						return
@@ -230,7 +231,7 @@ func main() {
 					actualStatusResponse := buffer[:len(expectedStatusResponse)]
 					isCorrectResponse := bytes.Equal(actualStatusResponse, expectedStatusResponse)
 					if !isCorrectResponse {
-						log.Println(server.toString() + ": Response error")
+						log.Println(sa.toString() + ": Response error")
 						return
 					}
 
@@ -245,8 +246,7 @@ func main() {
 					})
 
 					qserver := newQuakeServer()
-					qserver.SocketAddress = server.toString()
-					qserver.Port = server.Port
+					qserver.Address = sa.toString()
 					qserver.keepaliveCount = keepalive
 
 					qserver.QTV = append(qserver.QTV, QtvServer{
@@ -301,9 +301,9 @@ func main() {
 						}
 					}
 
-					mutex.Lock()
-					allQuakeServers[server] = qserver
-					mutex.Unlock()
+					mut.Lock()
+					allQuakeServers[sa] = qserver
+					mut.Unlock()
 				}(server)
 			}
 
