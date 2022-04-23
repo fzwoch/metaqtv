@@ -37,20 +37,20 @@ func main() {
 	}()
 
 	// http
-	handlerByFilter := func(validator func(QuakeServer) bool) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) { response(Filter(servers, validator), w, r) }
+	handlerByFilter := func(filterFunc func([]QuakeServer) []QuakeServer) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) { response(filterFunc(servers), w, r) }
 	}
 
-	handlerByMapTransform := func(mapTransform func([]QuakeServer) map[string]string) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) { response(mapTransform(servers), w, r) }
+	handlerByMapping := func(mapFunc func([]QuakeServer) map[string]string) http.HandlerFunc {
+		return func(w http.ResponseWriter, r *http.Request) { response(mapFunc(servers), w, r) }
 	}
 
 	api := make(map[string]http.HandlerFunc, 0)
-	api["/api/v3/servers"] = handlerByFilter(isNormalServer)
-	api["/api/v3/proxies"] = handlerByFilter(isProxyServer)
-	api["/api/v3/qtv"] = handlerByFilter(isQtvServer)
-	api["/api/v3/server_to_qtv"] = handlerByMapTransform(serverAddressToQtvMap)
-	api["/api/v3/qtv_to_server"] = handlerByMapTransform(qtvToServerAddressMap)
+	api["/api/v3/servers"] = handlerByFilter(isNormalServerFilter)
+	api["/api/v3/proxies"] = handlerByFilter(isProxyServerFilter)
+	api["/api/v3/qtv"] = handlerByFilter(isQtvServerFilter)
+	api["/api/v3/server_to_qtv"] = handlerByMapping(serverAddressToQtvMap)
+	api["/api/v3/qtv_to_server"] = handlerByMapping(qtvToServerAddressMap)
 
 	cacheClient := getHttpCacheClient()
 	for url, handler := range api {
