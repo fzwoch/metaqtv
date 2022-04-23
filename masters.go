@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"log"
 	"net"
+	"sync"
 )
 
 var (
@@ -68,4 +70,35 @@ func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]Sock
 	}
 
 	return addresses, nil
+}
+
+func ReadMasterServers(masterAddresses []SocketAddress, retries int, timeout int) []SocketAddress {
+	var (
+		wg     sync.WaitGroup
+		mutex  sync.Mutex
+		result = make([]SocketAddress, 0)
+	)
+
+	for _, masterAddress := range masterAddresses {
+		wg.Add(1)
+
+		go func(masterAddress SocketAddress) {
+			defer wg.Done()
+
+			addresses, err := ReadMasterServer(masterAddress.toString(), retries, timeout)
+
+			if err != nil {
+				log.Println(err)
+				return
+			}
+
+			mutex.Lock()
+			result = append(result, addresses...)
+			mutex.Unlock()
+		}(masterAddress)
+	}
+
+	wg.Wait()
+
+	return result
 }

@@ -48,30 +48,9 @@ func main() {
 				mutex sync.Mutex
 			)
 
-			allQuakeAddresses := make([]SocketAddress, 0)
+			quakeServerAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
 
-			for _, master := range masters {
-				wg.Add(1)
-
-				go func(sa SocketAddress) {
-					defer wg.Done()
-
-					addresses, err := ReadMasterServer(sa.toString(), conf.retries, conf.timeout)
-
-					if err != nil {
-						log.Println(err)
-						return
-					}
-
-					mutex.Lock()
-					allQuakeAddresses = append(allQuakeAddresses, addresses...)
-					mutex.Unlock()
-				}(master)
-			}
-
-			wg.Wait()
-
-			for _, address := range allQuakeAddresses {
+			for _, address := range quakeServerAddresses {
 				wg.Add(1)
 
 				go func(sa SocketAddress) {
