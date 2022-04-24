@@ -33,14 +33,14 @@ func ReadMasterServer(socketAddress string, retries int, timeout int) ([]SocketA
 
 	defer conn.Close()
 
-	statusSequence := []byte{0x63, 0x0a, 0x00}
+	statusPacket := []byte{0x63, 0x0a, 0x00}
 	buffer := make([]byte, 8192)
 	bufferLength := 0
 
 	for i := 0; i < retries; i++ {
 		conn.SetDeadline(timeInFuture(timeout))
 
-		_, err = conn.Write(statusSequence)
+		_, err = conn.Write(statusPacket)
 		if err != nil {
 			return addresses, err
 		}
@@ -58,11 +58,11 @@ func ReadMasterServer(socketAddress string, retries int, timeout int) ([]SocketA
 		return addresses, err
 	}
 
-	validHeaderSequence := []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
-	responseHeaderSequence := buffer[:len(validHeaderSequence)]
-	isValidHeaderSequence := bytes.Equal(responseHeaderSequence, validHeaderSequence)
+	validHeader := []byte{0xff, 0xff, 0xff, 0xff, 0x64, 0x0a}
+	responseHeader := buffer[:len(validHeader)]
+	isValidHeader := bytes.Equal(responseHeader, validHeader)
 
-	if !isValidHeaderSequence {
+	if !isValidHeader {
 		err = errors.New(socketAddress + ": Response error")
 		return addresses, err
 	}
