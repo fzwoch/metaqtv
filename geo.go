@@ -23,3 +23,11 @@ func getGeoData() map[string]geoData {
 
 	return geoData
 }
+
+func newGeoData() geoData {
+	return geoData{
+		Alpha2:  "",
+		Country: "",
+		Region:  "",
+	}
+}

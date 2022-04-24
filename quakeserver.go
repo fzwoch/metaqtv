@@ -65,15 +65,11 @@ func newQuakeServer() QuakeServer {
 		Title:       "",
 		Description: "",
 		Address:     "",
-		Geo: geoData{
-			Alpha2:  "",
-			Country: "",
-			Region:  "",
-		},
-		Settings:   map[string]string{},
-		Players:    make([]Player, 0),
-		Spectators: make([]Spectator, 0),
-		QtvAddress: "",
+		Geo:         newGeoData(),
+		Settings:    map[string]string{},
+		Players:     make([]Player, 0),
+		Spectators:  make([]Spectator, 0),
+		QtvAddress:  "",
 	}
 }
 
