@@ -46,7 +46,6 @@ type QtvServer struct {
 
 type QuakeServer struct {
 	Title         string
-	Description   string
 	Address       string
 	QtvAddress    string
 	Map           string
@@ -62,14 +61,13 @@ type QuakeServer struct {
 
 func newQuakeServer() QuakeServer {
 	return QuakeServer{
-		Title:       "",
-		Description: "",
-		Address:     "",
-		Geo:         newGeoData(),
-		Settings:    map[string]string{},
-		Players:     make([]Player, 0),
-		Spectators:  make([]Spectator, 0),
-		QtvAddress:  "",
+		Title:      "",
+		Address:    "",
+		Geo:        newGeoData(),
+		Settings:   map[string]string{},
+		Players:    make([]Player, 0),
+		Spectators: make([]Spectator, 0),
+		QtvAddress: "",
 	}
 }
 
