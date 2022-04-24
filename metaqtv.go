@@ -8,6 +8,7 @@ package main
 import (
 	"net/http"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 )
@@ -32,13 +33,27 @@ func main() {
 
 				serverAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
 				servers = ReadServers(serverAddresses, conf.retries, conf.timeout)
+
 			}()
 		}
 	}()
 
+	// geo
+	geoData := getGeoData()
+
+	appendGeoData := func(servers []QuakeServer) []QuakeServer {
+		for index, s := range servers {
+			AddressParts := strings.Split(s.Address, ":")
+			servers[index].Geo = geoData[AddressParts[0]]
+		}
+		return servers
+	}
+
 	// http
 	handlerByFilter := func(filterFunc func([]QuakeServer) []QuakeServer) http.HandlerFunc {
-		return func(w http.ResponseWriter, r *http.Request) { httpJsonResponse(filterFunc(servers), w, r) }
+		return func(w http.ResponseWriter, r *http.Request) {
+			httpJsonResponse(appendGeoData(filterFunc(servers)), w, r)
+		}
 	}
 
 	handlerByMapping := func(mapFunc func([]QuakeServer) map[string]string) http.HandlerFunc {

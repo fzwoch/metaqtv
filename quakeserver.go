@@ -50,6 +50,7 @@ type QuakeServer struct {
 	Address       string
 	QtvAddress    string
 	Map           string
+	Geo           geoData
 	NumPlayers    int
 	MaxPlayers    int
 	NumSpectators int
@@ -64,10 +65,15 @@ func newQuakeServer() QuakeServer {
 		Title:       "",
 		Description: "",
 		Address:     "",
-		Settings:    map[string]string{},
-		Players:     make([]Player, 0),
-		Spectators:  make([]Spectator, 0),
-		QtvAddress:  "",
+		Geo: geoData{
+			Alpha2:  "",
+			Country: "",
+			Region:  "",
+		},
+		Settings:   map[string]string{},
+		Players:    make([]Player, 0),
+		Spectators: make([]Spectator, 0),
+		QtvAddress: "",
 	}
 }
 

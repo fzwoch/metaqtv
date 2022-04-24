@@ -3,6 +3,9 @@ package main
 import (
 	"bytes"
 	"compress/gzip"
+	"io"
+	"net/http"
+	"os"
 	"strings"
 	"time"
 )
@@ -74,4 +77,25 @@ func stringToIntArray(value string) []int {
 
 func timeInFuture(delta int) time.Time {
 	return time.Now().Add(time.Duration(delta) * time.Millisecond)
+}
+
+func Download(url string, dest string) error {
+
+	// Get the data
+	resp, err := http.Get(url)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	// Create the file
+	out, err := os.Create(dest)
+	if err != nil {
+		return err
+	}
+	defer out.Close()
+
+	// Write the body to file
+	_, err = io.Copy(out, resp.Body)
+	return err
 }
