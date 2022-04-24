@@ -23,7 +23,7 @@ func (addr RawServerSocketAddress) toSocketAddress() SocketAddress {
 	}
 }
 
-func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]SocketAddress, error) {
+func ReadMasterServer(socketAddress string, retries int, timeout int) ([]SocketAddress, error) {
 	addresses := make([]SocketAddress, 0)
 
 	conn, err := net.Dial("udp4", socketAddress)
@@ -37,7 +37,7 @@ func ReadMasterServer(socketAddress string, retryCount int, timeout int) ([]Sock
 	buffer := make([]byte, 8192)
 	bufferLength := 0
 
-	for i := 0; i < retryCount; i++ {
+	for i := 0; i < retries; i++ {
 		conn.SetDeadline(timeInFuture(timeout))
 
 		_, err = conn.Write(statusSequence)
