@@ -1,6 +1,6 @@
 # MetaQTV
 
-> An improved Go re-implementation of [MetaQTV](https://github.com/eb/metaqtv/).
+> MetaQtv is a web API that serves a collection of QuakeWorld Servers from multiple QuakeWorld masters.
 
 ## Usage
 
@@ -11,7 +11,15 @@ metaqtv [-interval INTERVAL] [-port PORT]
 | arg        | type  | description                | default | 
 |------------|-------|----------------------------|---------|
 | `interval` | `int` | Update interval in seconds | `60`    | 
-| `port`     | `int` | HTTP listen port           | `3000`  | 
+| `port`     | `int` | HTTP listen port           | `3000`  |
+
+## API endpoints
+
+* `/api/servers` - "Normal" Quake servers
+* `/api/proxies` - Proxies
+* `/api/qtv` - QTV servers
+* `/api/qtv_to_servers` - Map of QTV stream URLs to server addresses
+* `/api/server_to_qtv` - Map of server addresses to QTV stream URLs
 
 ## Config
 
