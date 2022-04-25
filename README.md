@@ -15,11 +15,13 @@ metaqtv [-interval INTERVAL] [-port PORT]
 
 ## API endpoints
 
-* `/api/servers` - "Normal" Quake servers
-* `/api/proxies` - Proxies
-* `/api/qtv` - QTV servers
-* `/api/qtv_to_servers` - Map of QTV stream URLs to server addresses
-* `/api/server_to_qtv` - Map of server addresses to QTV stream URLs
+| URL               | description                            |  
+|-------------------|----------------------------------------|
+| `/servers`        | "Normal" Quake servers                 |  
+| `/proxies`        | Proxies                                |  
+| `/qtv`            | QTV servers                            |  
+| `/qtv_to_servers` | Map of QTV streams to server addresses |  
+| `/server_to_qtv`  | Map of server addresses to QTV streams |  
 
 ## Config
 
