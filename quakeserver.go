@@ -71,8 +71,8 @@ func newQuakeServer() QuakeServer {
 	}
 }
 
-func ReadServerQtv(serverAddress SocketAddress, retries int, timeout int) (QtvServer, error) {
-	conn, err := net.Dial("udp4", serverAddress.toString())
+func ReadServerQtv(address string, retries int, timeout int) (QtvServer, error) {
+	conn, err := net.Dial("udp4", address)
 	if err != nil {
 		return QtvServer{}, err
 	}
@@ -138,18 +138,18 @@ func ReadServerQtv(serverAddress SocketAddress, retries int, timeout int) (QtvSe
 	}, nil
 }
 
-func ReadServers(serverAddresses []SocketAddress, retries int, timeout int) []QuakeServer {
+func ReadServers(addresses []string, retries int, timeout int) []QuakeServer {
 	var (
 		wg    sync.WaitGroup
 		mutex sync.Mutex
 	)
 
-	quakeServers := make([]QuakeServer, 0)
+	servers := make([]QuakeServer, 0)
 
-	for _, address := range serverAddresses {
+	for _, address := range addresses {
 		wg.Add(1)
 
-		go func(address SocketAddress) {
+		go func(address string) {
 			defer wg.Done()
 
 			qserver, err := ReadServer(address, retries, timeout)
@@ -159,18 +159,18 @@ func ReadServers(serverAddresses []SocketAddress, retries int, timeout int) []Qu
 			}
 
 			mutex.Lock()
-			quakeServers = append(quakeServers, qserver)
+			servers = append(servers, qserver)
 			mutex.Unlock()
 		}(address)
 	}
 
 	wg.Wait()
 
-	return quakeServers
+	return servers
 }
 
-func ReadServer(serverAddress SocketAddress, retries int, timeout int) (QuakeServer, error) {
-	conn, err := net.Dial("udp4", serverAddress.toString())
+func ReadServer(address string, retries int, timeout int) (QuakeServer, error) {
+	conn, err := net.Dial("udp4", address)
 	if err != nil {
 		return QuakeServer{}, err
 	}
@@ -205,7 +205,7 @@ func ReadServer(serverAddress SocketAddress, retries int, timeout int) (QuakeSer
 	responseHeader := buffer[:len(validHeader)]
 	isValidHeader := bytes.Equal(responseHeader, validHeader)
 	if !isValidHeader {
-		log.Println(serverAddress.toString() + ": Response error")
+		log.Println(address + ": Response error")
 		return QuakeServer{}, err
 	}
 
@@ -220,7 +220,7 @@ func ReadServer(serverAddress SocketAddress, retries int, timeout int) (QuakeSer
 	})
 
 	qserver := newQuakeServer()
-	qserver.Address = serverAddress.toString()
+	qserver.Address = address
 
 	for i := 0; i < len(settings)-1; i += 2 {
 		qserver.Settings[settings[i]] = settings[i+1]
@@ -270,7 +270,7 @@ func ReadServer(serverAddress SocketAddress, retries int, timeout int) (QuakeSer
 	qserver.NumPlayers = len(qserver.Players)
 	qserver.NumSpectators = len(qserver.Spectators)
 
-	qtvServer, _ := ReadServerQtv(serverAddress, retries, timeout)
+	qtvServer, _ := ReadServerQtv(address, retries, timeout)
 	qserver.QtvAddress = qtvServer.Address
 
 	return qserver, nil

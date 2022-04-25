@@ -37,11 +37,11 @@ func getConfig() AppConfig {
 	}
 }
 
-func getMasterServersFromJsonFile(filePath string) []SocketAddress {
+func getMasterServersFromJsonFile(filePath string) []string {
 	jsonFile, err := os.ReadFile(filePath)
 	panicIf(err)
 
-	var result []SocketAddress
+	var result []string
 	err = json.Unmarshal(jsonFile, &result)
 	panicIf(err)
 
