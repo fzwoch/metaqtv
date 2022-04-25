@@ -1,41 +1,43 @@
 # MetaQTV
 
-An improved Go re-implementation of [MetaQTV](https://github.com/eb/metaqtv/).
+> An improved Go re-implementation of [MetaQTV](https://github.com/eb/metaqtv/).
 
 ## Usage
 
+```sh
+metaqtv [-interval INTERVAL] [-port PORT]
 ```
-Usage of metaqtv:
-  -config string
-    	Master server config file (default "metaqtv.json")
-  -interval int
-    	Update interval in seconds (default 60)
-  -keepalive int
-    	Keep server alive for N tries (default 3)
-  -port int
-    	HTTP listen port (default 3000)
-  -retry int
-    	UDP retry count (default 5)
-  -timeout int
-    	UDP timeout in milliseconds (default 500)
-```
+
+| arg        | type  | description                | default | 
+|------------|-------|----------------------------|---------|
+| `interval` | `int` | Update interval in seconds | `60`    | 
+| `port`     | `int` | HTTP listen port           | `3000`  | 
 
 ## Config
 
-Application reads `master_servers.json` from the current working directory. This config file lists Quake master servers which are queried.
+### Master servers
+
+The QuakeWorld master servers to query for servers.
+
+**Example**
+`master_servers.json`
 
 ```json
 [
-    {
-        "hostname": "qwmaster.ocrana.de",
-        "port": 27000
-    },
-    [..]
+  "master.quakeworld.nu:27000",
+  "master.quakeservers.net:27000",
+  "qwmaster.ocrana.de:27000",
+  "qwmaster.fodquake.net:27000"
 ]
 ```
 
 ## Build
 
-```
+```sh
 $ go build
 ```
+
+## Credits
+
+* eb
+* Tuna
