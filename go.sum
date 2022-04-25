@@ -1,2 +1,8 @@
+github.com/davecgh/go-spew v1.1.0 h1:ZDRjVQ15GmhC3fiQ8ni8+OwkZQO4DARzQgrnXU1Liz8=
+github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
+github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
 github.com/victorspringer/http-cache v0.0.0-20220131145941-ef3624e6666f h1:Ms+JI9ztNft5uu+SDZq4mWjVkJwrVInU6HxP3y4TovU=
 github.com/victorspringer/http-cache v0.0.0-20220131145941-ef3624e6666f/go.mod h1:V7CEaXWuLs0tH3DNWqJO+GVr8YgiAwRgBh76T4LNSPU=
+github.com/vikpe/qw-masterstat v0.1.0 h1:990jay3OgbU8i+LH7mnYps1Ctiiwtp3rH4k6OUjfJwU=
+github.com/vikpe/qw-masterstat v0.1.0/go.mod h1:4KNExh8MA9y4ZVKBIXa1/WpMRJimimF3Ltc56+2UvXg=
+gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=

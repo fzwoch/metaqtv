@@ -11,6 +11,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/vikpe/qw-masterstat"
 )
 
 func main() {
@@ -31,7 +33,7 @@ func main() {
 			go func() {
 				defer wg.Done()
 
-				serverAddresses := ReadMasterServers(masters, conf.retries, conf.timeout)
+				serverAddresses := masterstat.StatMany(masters, conf.retries, conf.timeout)
 				servers = ReadServers(serverAddresses, conf.retries, conf.timeout)
 
 			}()

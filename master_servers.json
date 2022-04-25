@@ -1,18 +1,6 @@
 [
-  {
-    "host": "master.quakeworld.nu",
-    "port": 27000
-  },
-  {
-    "host": "master.quakeservers.net",
-    "port": 27000
-  },
-  {
-    "host": "qwmaster.ocrana.de",
-    "port": 27000
-  },
-  {
-    "host": "qwmaster.fodquake.net",
-    "port": 27000
-  }
+  "master.quakeworld.nu:27000",
+  "master.quakeservers.net:27000",
+  "qwmaster.ocrana.de:27000",
+  "qwmaster.fodquake.net:27000"
 ]
