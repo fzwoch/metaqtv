@@ -9,8 +9,8 @@ func serverAddressToQtvMap(servers []serverstat.QuakeServer) map[string]string {
 	serverToQtv := make(map[string]string, 0)
 
 	for _, server := range normalServers {
-		if server.QtvAddress != "" {
-			serverToQtv[server.Address] = server.QtvAddress
+		if server.QtvStream.Id != 0 {
+			serverToQtv[server.Address] = server.QtvStream.Url
 		}
 	}
 

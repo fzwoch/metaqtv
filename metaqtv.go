@@ -17,7 +17,7 @@ func main() {
 	// conf
 	conf := getConfig()
 
-	// get servers
+	// read master servers
 	masters, err := getMasterServersFromJsonFile(conf.masterServersFile)
 
 	if err != nil {
@@ -25,7 +25,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	// main
+	// main loop
 	servers := make([]serverstat.QuakeServer, 0)
 
 	go func() {
@@ -44,7 +44,7 @@ func main() {
 		}
 	}()
 
-	// append geo data to servers
+	// append geo data
 	geoData, err := getGeoData()
 
 	if err != nil {
@@ -83,11 +83,11 @@ func main() {
 	}
 
 	api := make(map[string]http.HandlerFunc, 0)
-	api["/api/v3/servers"] = handlerByFilter(isNormalServerFilter)
-	api["/api/v3/proxies"] = handlerByFilter(isProxyServerFilter)
-	api["/api/v3/qtv"] = handlerByFilter(isQtvServerFilter)
-	api["/api/v3/server_to_qtv"] = handlerByMapping(serverAddressToQtvMap)
-	api["/api/v3/qtv_to_server"] = handlerByMapping(qtvToServerAddressMap)
+	api["/servers"] = handlerByFilter(isNormalServerFilter)
+	api["/proxies"] = handlerByFilter(isProxyServerFilter)
+	api["/qtv"] = handlerByFilter(isQtvServerFilter)
+	api["/server_to_qtv"] = handlerByMapping(serverAddressToQtvMap)
+	api["/qtv_to_server"] = handlerByMapping(qtvToServerAddressMap)
 
 	cacheClient := getHttpCacheClient()
 	for url, handler := range api {
