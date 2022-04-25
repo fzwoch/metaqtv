@@ -1,6 +1,6 @@
 # MetaQTV
 
-> MetaQtv is a web API that serves a collection of QuakeWorld Servers from multiple QuakeWorld masters.
+> Web API serving QuakeWorld server info
 
 ## Usage
 
