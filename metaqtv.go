@@ -1,27 +1,32 @@
-// Copyright (C) 2019-2022 Florian Zwoch <fzwoch@gmail.com>
-//
-// see https://github.com/eb/metaqtv
-// for jogi - get well soon <3
-
 package main
 
 import (
+	"log"
 	"net/http"
+	"os"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/vikpe/qw-masterstat"
+	masterstat "github.com/vikpe/qw-masterstat"
+	serverstat "github.com/vikpe/qw-serverstat"
 )
 
 func main() {
 	// conf
 	conf := getConfig()
 
-	// servers
-	masters := getMasterServersFromJsonFile(conf.masterServersFile)
-	servers := make([]QuakeServer, 0)
+	// get servers
+	masters, err := getMasterServersFromJsonFile(conf.masterServersFile)
+
+	if err != nil {
+		log.Println("Unable to read master_servers.json")
+		os.Exit(1)
+	}
+
+	// main
+	servers := make([]serverstat.QuakeServer, 0)
 
 	go func() {
 		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
@@ -33,32 +38,47 @@ func main() {
 			go func() {
 				defer wg.Done()
 
-				serverAddresses := masterstat.StatMany(masters, conf.retries, conf.timeout)
-				servers = ReadServers(serverAddresses, conf.retries, conf.timeout)
-
+				serverAddresses := masterstat.StatMany(masters)
+				servers = serverstat.StatMany(serverAddresses)
 			}()
 		}
 	}()
 
-	// geo
-	geoData := getGeoData()
+	// append geo data to servers
+	geoData, err := getGeoData()
 
-	appendGeoData := func(servers []QuakeServer) []QuakeServer {
-		for index, s := range servers {
-			AddressParts := strings.Split(s.Address, ":")
-			servers[index].Geo = geoData[AddressParts[0]]
+	if err != nil {
+		log.Println("Unable to download geo data.json")
+		os.Exit(1)
+	}
+
+	type ServerGeo struct {
+		serverstat.QuakeServer
+		Geo GeoInfo
+	}
+
+	appendGeo := func(servers []serverstat.QuakeServer) []ServerGeo {
+		serversWithGeo := make([]ServerGeo, 0)
+
+		for _, server := range servers {
+			serverIp := strings.Split(server.Address, ":")[0]
+			serversWithGeo = append(serversWithGeo, ServerGeo{
+				QuakeServer: server,
+				Geo:         geoData[serverIp],
+			})
 		}
-		return servers
+
+		return serversWithGeo
 	}
 
 	// http
-	handlerByFilter := func(filterFunc func([]QuakeServer) []QuakeServer) http.HandlerFunc {
+	handlerByFilter := func(filterFunc func([]serverstat.QuakeServer) []serverstat.QuakeServer) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
-			httpJsonResponse(appendGeoData(filterFunc(servers)), w, r)
+			httpJsonResponse(appendGeo(filterFunc(servers)), w, r)
 		}
 	}
 
-	handlerByMapping := func(mapFunc func([]QuakeServer) map[string]string) http.HandlerFunc {
+	handlerByMapping := func(mapFunc func([]serverstat.QuakeServer) map[string]string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) { httpJsonResponse(mapFunc(servers), w, r) }
 	}
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"bytes"
+	"compress/gzip"
 	"encoding/json"
 	"net/http"
 	"strings"
@@ -36,4 +38,13 @@ func getHttpCacheClient() *cache.Client {
 	)
 
 	return cacheClient
+}
+
+func gzipCompress(data []byte) []byte {
+	buffer := bytes.NewBuffer(make([]byte, 0))
+	writer := gzip.NewWriter(buffer)
+	writer.Write(data)
+	writer.Close()
+
+	return buffer.Bytes()
 }
