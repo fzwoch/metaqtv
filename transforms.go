@@ -1,10 +1,10 @@
 package main
 
 import (
-	serverstat "github.com/vikpe/qw-serverstat"
+	"github.com/vikpe/qw-serverstat/quakeserver"
 )
 
-func serverAddressToQtvMap(servers []serverstat.QuakeServer) map[string]string {
+func serverAddressToQtvMap(servers []quakeserver.QuakeServer) map[string]string {
 	normalServers := filter(servers, isNormalServer)
 	serverToQtv := make(map[string]string, 0)
 
@@ -17,7 +17,7 @@ func serverAddressToQtvMap(servers []serverstat.QuakeServer) map[string]string {
 	return serverToQtv
 }
 
-func qtvToServerAddressMap(servers []serverstat.QuakeServer) map[string]string {
+func qtvToServerAddressMap(servers []quakeserver.QuakeServer) map[string]string {
 	return reverseStringMap(serverAddressToQtvMap(servers))
 }
 

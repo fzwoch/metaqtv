@@ -9,8 +9,9 @@ import (
 	"sync"
 	"time"
 
-	masterstat "github.com/vikpe/qw-masterstat"
-	serverstat "github.com/vikpe/qw-serverstat"
+	"github.com/vikpe/qw-masterstat"
+	"github.com/vikpe/qw-serverstat"
+	"github.com/vikpe/qw-serverstat/quakeserver"
 )
 
 func main() {
@@ -26,7 +27,7 @@ func main() {
 	}
 
 	// main loop
-	servers := make([]serverstat.QuakeServer, 0)
+	servers := make([]quakeserver.QuakeServer, 0)
 
 	go func() {
 		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
@@ -38,7 +39,7 @@ func main() {
 			go func() {
 				defer wg.Done()
 
-				serverAddresses := masterstat.StatMany(masters)
+				serverAddresses := masterstat.GetServerAddressesFromMany(masters)
 				servers = serverstat.StatMany(serverAddresses)
 			}()
 		}
@@ -53,11 +54,11 @@ func main() {
 	}
 
 	type ServerGeo struct {
-		serverstat.QuakeServer
+		quakeserver.QuakeServer
 		Geo GeoInfo
 	}
 
-	appendGeo := func(servers []serverstat.QuakeServer) []ServerGeo {
+	appendGeo := func(servers []quakeserver.QuakeServer) []ServerGeo {
 		serversWithGeo := make([]ServerGeo, 0)
 
 		for _, server := range servers {
@@ -72,13 +73,13 @@ func main() {
 	}
 
 	// http
-	handlerByFilter := func(filterFunc func([]serverstat.QuakeServer) []serverstat.QuakeServer) http.HandlerFunc {
+	handlerByFilter := func(filterFunc func([]quakeserver.QuakeServer) []quakeserver.QuakeServer) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) {
 			httpJsonResponse(appendGeo(filterFunc(servers)), w, r)
 		}
 	}
 
-	handlerByMapping := func(mapFunc func([]serverstat.QuakeServer) map[string]string) http.HandlerFunc {
+	handlerByMapping := func(mapFunc func([]quakeserver.QuakeServer) map[string]string) http.HandlerFunc {
 		return func(w http.ResponseWriter, r *http.Request) { httpJsonResponse(mapFunc(servers), w, r) }
 	}
 
