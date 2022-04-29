@@ -20,7 +20,7 @@ metaqtv [-interval INTERVAL] [-port PORT]
 | `/servers`        | "Normal" Quake servers                 |  
 | `/proxies`        | Proxies                                |  
 | `/qtv`            | QTV servers                            |  
-| `/qtv_to_servers` | Map of QTV streams to server addresses |  
+| `/qtv_to_server`  | Map of QTV streams to server addresses |  
 | `/server_to_qtv`  | Map of server addresses to QTV streams |  
 
 ## Config
