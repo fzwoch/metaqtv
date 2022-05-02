@@ -1,10 +1,6 @@
 package main
 
-import (
-	"strings"
-
-	"github.com/vikpe/qw-serverstat/quakeserver"
-)
+import "github.com/vikpe/qw-serverstat/qserver"
 
 func filter[Type any](values []Type, validator func(Type) bool) []Type {
 	var result = make([]Type, 0)
@@ -16,26 +12,14 @@ func filter[Type any](values []Type, validator func(Type) bool) []Type {
 	return result
 }
 
-func isNormalServer(server quakeserver.QuakeServer) bool {
-	return !(isQtvServer(server) || isProxyServer(server))
+func isNormalServerFilter(servers []qserver.GenericServer) []qserver.GenericServer {
+	return filter(servers, qserver.IsGameServer)
 }
 
-func isNormalServerFilter(servers []quakeserver.QuakeServer) []quakeserver.QuakeServer {
-	return filter(servers, isNormalServer)
+func isProxyServerFilter(servers []qserver.GenericServer) []qserver.GenericServer {
+	return filter(servers, qserver.IsProxyServer)
 }
 
-func isProxyServer(server quakeserver.QuakeServer) bool {
-	return strings.HasPrefix(server.Settings["*version"], "qwfwd")
-}
-
-func isProxyServerFilter(servers []quakeserver.QuakeServer) []quakeserver.QuakeServer {
-	return filter(servers, isProxyServer)
-}
-
-func isQtvServer(server quakeserver.QuakeServer) bool {
-	return strings.HasPrefix(server.Settings["*version"], "QTV")
-}
-
-func isQtvServerFilter(servers []quakeserver.QuakeServer) []quakeserver.QuakeServer {
-	return filter(servers, isQtvServer)
+func isQtvServerFilter(servers []qserver.GenericServer) []qserver.GenericServer {
+	return filter(servers, qserver.IsQtvServer)
 }
