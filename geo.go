@@ -8,7 +8,7 @@ import (
 )
 
 type GeoInfo struct {
-	Alpha2  string
+	CC      string
 	Country string
 	Region  string
 }
