@@ -39,7 +39,12 @@ func main() {
 			go func() {
 				defer wg.Done()
 
-				serverAddresses := masterstat.GetServerAddressesFromMany(masters)
+				serverAddresses, err := masterstat.GetServerAddressesFromMany(masters)
+
+				if err != nil {
+					log.Println("ERROR:", err)
+					return
+				}
 				servers = serverstat.GetServerInfoFromMany(serverAddresses)
 			}()
 		}
