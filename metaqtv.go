@@ -9,9 +9,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/vikpe/qw-masterstat"
-	"github.com/vikpe/qw-serverstat"
-	"github.com/vikpe/qw-serverstat/qserver"
+	"github.com/vikpe/masterstat"
+	"github.com/vikpe/serverstat"
+	"github.com/vikpe/serverstat/qserver"
 )
 
 func main() {

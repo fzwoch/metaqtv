@@ -1,6 +1,6 @@
 package main
 
-import "github.com/vikpe/qw-serverstat/qserver"
+import "github.com/vikpe/serverstat/qserver"
 
 func serverAddressToQtvMap(servers []qserver.GenericServer) map[string]string {
 	normalServers := filter(servers, qserver.IsGameServer)

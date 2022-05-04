@@ -1,6 +1,6 @@
 package main
 
-import "github.com/vikpe/qw-serverstat/qserver"
+import "github.com/vikpe/serverstat/qserver"
 
 func filter[Type any](values []Type, validator func(Type) bool) []Type {
 	var result = make([]Type, 0)
