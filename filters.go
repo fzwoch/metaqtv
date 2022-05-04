@@ -12,14 +12,20 @@ func filter[Type any](values []Type, validator func(Type) bool) []Type {
 	return result
 }
 
-func isNormalServerFilter(servers []qserver.GenericServer) []qserver.GenericServer {
-	return filter(servers, qserver.IsGameServer)
+func isGameServerFilter(servers []qserver.GenericServer) []qserver.GenericServer {
+	return filter(servers, func(server qserver.GenericServer) bool {
+		return server.Version.IsGameServer()
+	})
 }
 
 func isProxyServerFilter(servers []qserver.GenericServer) []qserver.GenericServer {
-	return filter(servers, qserver.IsProxyServer)
+	return filter(servers, func(server qserver.GenericServer) bool {
+		return server.Version.IsProxy()
+	})
 }
 
 func isQtvServerFilter(servers []qserver.GenericServer) []qserver.GenericServer {
-	return filter(servers, qserver.IsQtvServer)
+	return filter(servers, func(server qserver.GenericServer) bool {
+		return server.Version.IsQtv()
+	})
 }

@@ -5,8 +5,8 @@ github.com/victorspringer/http-cache v0.0.0-20220131145941-ef3624e6666f h1:Ms+JI
 github.com/victorspringer/http-cache v0.0.0-20220131145941-ef3624e6666f/go.mod h1:V7CEaXWuLs0tH3DNWqJO+GVr8YgiAwRgBh76T4LNSPU=
 github.com/vikpe/masterstat v0.1.5 h1:6njw80OqDlRSKJI4c/cksT4aRNSYQMLlkZ/ZGzQMF4M=
 github.com/vikpe/masterstat v0.1.5/go.mod h1:RFa1qHeIVWp/787CNsBWegD4Q2uq3pMYkf/bVzwOc4g=
-github.com/vikpe/serverstat v0.1.5 h1:f0v1ue0Odb1rhcC9VLIJ+wnbsAfA+6LWOeqvn/9uECM=
-github.com/vikpe/serverstat v0.1.5/go.mod h1:c2JB3q91tzsqsJ3nsrNUwDeO9TGych520l6Hy9ax7fg=
+github.com/vikpe/serverstat v0.1.6 h1:AMuk6MHfLqvgqOauGkeGJQVpTxoM/pkgembBEKqROmc=
+github.com/vikpe/serverstat v0.1.6/go.mod h1:c2JB3q91tzsqsJ3nsrNUwDeO9TGych520l6Hy9ax7fg=
 github.com/vikpe/udpclient v0.1.0 h1:MUNgWuDRsklZ2t4TYaqQyzgbrD2wIhmFctNYesgEgKU=
 github.com/vikpe/udpclient v0.1.0/go.mod h1:kxOJn7/0GRf6M6S8sfXpXqD8nRvCc7l9Jr+o4nPZDWI=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=

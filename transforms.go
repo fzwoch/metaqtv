@@ -3,10 +3,10 @@ package main
 import "github.com/vikpe/serverstat/qserver"
 
 func serverAddressToQtvMap(servers []qserver.GenericServer) map[string]string {
-	normalServers := filter(servers, qserver.IsGameServer)
+	gameServers := isGameServerFilter(servers)
 	serverToQtv := make(map[string]string, 0)
 
-	for _, server := range normalServers {
+	for _, server := range gameServers {
 		if "" != server.ExtraInfo.QtvStream.Url {
 			serverToQtv[server.Address] = server.ExtraInfo.QtvStream.Url
 		}

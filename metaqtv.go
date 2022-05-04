@@ -89,7 +89,7 @@ func main() {
 	}
 
 	api := make(map[string]http.HandlerFunc, 0)
-	api["/servers"] = handlerByFilter(isNormalServerFilter)
+	api["/servers"] = handlerByFilter(isGameServerFilter)
 	api["/proxies"] = handlerByFilter(isProxyServerFilter)
 	api["/qtv"] = handlerByFilter(isQtvServerFilter)
 	api["/server_to_qtv"] = handlerByMapping(serverAddressToQtvMap)
