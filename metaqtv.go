@@ -45,7 +45,7 @@ func main() {
 					log.Println("ERROR:", err)
 					return
 				}
-				servers = serverstat.GetServerInfoFromMany(serverAddresses)
+				servers = serverstat.GetInfoFromMany(serverAddresses)
 			}()
 		}
 	}()
