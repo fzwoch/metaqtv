@@ -3,10 +3,10 @@ github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZb
 github.com/stretchr/testify v1.7.1 h1:5TQK59W5E3v0r2duFAb7P95B6hEeOyEnHRa8MjYSMTY=
 github.com/victorspringer/http-cache v0.0.0-20220131145941-ef3624e6666f h1:Ms+JI9ztNft5uu+SDZq4mWjVkJwrVInU6HxP3y4TovU=
 github.com/victorspringer/http-cache v0.0.0-20220131145941-ef3624e6666f/go.mod h1:V7CEaXWuLs0tH3DNWqJO+GVr8YgiAwRgBh76T4LNSPU=
-github.com/vikpe/masterstat v0.1.5 h1:6njw80OqDlRSKJI4c/cksT4aRNSYQMLlkZ/ZGzQMF4M=
-github.com/vikpe/masterstat v0.1.5/go.mod h1:RFa1qHeIVWp/787CNsBWegD4Q2uq3pMYkf/bVzwOc4g=
+github.com/vikpe/masterstat v0.1.6 h1:L99hlyHmewcCCyMCHCO/V/CZ8IERKvL3WiolEPJcwh4=
+github.com/vikpe/masterstat v0.1.6/go.mod h1:TzO1cssnM+0nCC4fMFENfGrE0SzRayXOxySFW8UoIi0=
 github.com/vikpe/serverstat v0.1.7 h1:20VIEslqSv26d8pRv1+k1akCLWKNZUIcvD989AkYehk=
 github.com/vikpe/serverstat v0.1.7/go.mod h1:c2JB3q91tzsqsJ3nsrNUwDeO9TGych520l6Hy9ax7fg=
-github.com/vikpe/udpclient v0.1.0 h1:MUNgWuDRsklZ2t4TYaqQyzgbrD2wIhmFctNYesgEgKU=
-github.com/vikpe/udpclient v0.1.0/go.mod h1:kxOJn7/0GRf6M6S8sfXpXqD8nRvCc7l9Jr+o4nPZDWI=
+github.com/vikpe/udpclient v0.1.2 h1:0eXEpk6uazzJFj1hmIimcEL2l4MWIgf4PJ39uLiW1Kc=
+github.com/vikpe/udpclient v0.1.2/go.mod h1:zesh7J8slDh00/mQ7/WbvsPta0vOyOZQxqo3U3HzT+k=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c h1:dUUwHk2QECo/6vqA44rthZ8ie2QXMNeKRTHCNY2nXvo=
