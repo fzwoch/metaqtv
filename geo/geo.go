@@ -1,4 +1,4 @@
-package main
+package geo
 
 import (
 	"encoding/json"
@@ -7,13 +7,13 @@ import (
 	"os"
 )
 
-type GeoInfo struct {
+type Info struct {
 	CC      string
 	Country string
 	Region  string
 }
 
-func getGeoData() (map[string]GeoInfo, error) {
+func GetData() (map[string]Info, error) {
 	sourceUrl := "https://raw.githubusercontent.com/vikpe/qw-servers-geoip/main/ip_to_geo.json"
 	destPath := "ip_to_geo.json"
 	err := downloadFile(sourceUrl, destPath)
@@ -23,7 +23,7 @@ func getGeoData() (map[string]GeoInfo, error) {
 
 	geoJsonFile, _ := os.ReadFile(destPath)
 
-	var geoData map[string]GeoInfo
+	var geoData map[string]Info
 	err = json.Unmarshal(geoJsonFile, &geoData)
 	if err != nil {
 		return nil, err

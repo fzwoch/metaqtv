@@ -1,9 +1,12 @@
-package main
+package transform
 
-import "github.com/vikpe/serverstat/qserver"
+import (
+	"github.com/vikpe/serverstat/qserver"
+	"metaqtv/filter"
+)
 
-func serverAddressToQtvMap(servers []qserver.GenericServer) map[string]string {
-	gameServers := isGameServerFilter(servers)
+func ServerAddressToQtvMap(servers []qserver.GenericServer) map[string]string {
+	gameServers := filter.GameServers(servers)
 	serverToQtv := make(map[string]string, 0)
 
 	for _, server := range gameServers {
@@ -15,8 +18,8 @@ func serverAddressToQtvMap(servers []qserver.GenericServer) map[string]string {
 	return serverToQtv
 }
 
-func qtvToServerAddressMap(servers []qserver.GenericServer) map[string]string {
-	return reverseStringMap(serverAddressToQtvMap(servers))
+func QtvToServerAddressMap(servers []qserver.GenericServer) map[string]string {
+	return reverseStringMap(ServerAddressToQtvMap(servers))
 }
 
 func reverseStringMap(map_ map[string]string) map[string]string {

@@ -12,6 +12,9 @@ import (
 	"github.com/vikpe/masterstat"
 	"github.com/vikpe/serverstat"
 	"github.com/vikpe/serverstat/qserver"
+	"metaqtv/filter"
+	"metaqtv/geo"
+	"metaqtv/transform"
 )
 
 func main() {
@@ -51,7 +54,7 @@ func main() {
 	}()
 
 	// append geo data
-	geoData, err := getGeoData()
+	geoData, err := geo.GetData()
 
 	if err != nil {
 		log.Println("Unable to download geo data.json")
@@ -60,7 +63,7 @@ func main() {
 
 	type ServerGeo struct {
 		qserver.GenericServer
-		Geo GeoInfo
+		Geo geo.Info
 	}
 
 	appendGeo := func(servers []qserver.GenericServer) []ServerGeo {
@@ -89,11 +92,11 @@ func main() {
 	}
 
 	api := make(map[string]http.HandlerFunc, 0)
-	api["/servers"] = handlerByFilter(isGameServerFilter)
-	api["/proxies"] = handlerByFilter(isProxyServerFilter)
-	api["/qtv"] = handlerByFilter(isQtvServerFilter)
-	api["/server_to_qtv"] = handlerByMapping(serverAddressToQtvMap)
-	api["/qtv_to_server"] = handlerByMapping(qtvToServerAddressMap)
+	api["/servers"] = handlerByFilter(filter.GameServers)
+	api["/proxies"] = handlerByFilter(filter.ProxyServers)
+	api["/qtv"] = handlerByFilter(filter.QtvServers)
+	api["/server_to_qtv"] = handlerByMapping(transform.ServerAddressToQtvMap)
+	api["/qtv_to_server"] = handlerByMapping(transform.QtvToServerAddressMap)
 
 	cacheClient := getHttpCacheClient()
 	for url, handler := range api {
