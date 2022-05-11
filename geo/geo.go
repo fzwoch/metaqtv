@@ -13,7 +13,21 @@ type Info struct {
 	Region  string
 }
 
-func GetData() (map[string]Info, error) {
+type Database map[string]Info
+
+func (db Database) Get(ip string) Info {
+	if _, ok := db[ip]; ok {
+		return db[ip]
+	} else {
+		return Info{
+			CC:      "",
+			Country: "",
+			Region:  "",
+		}
+	}
+}
+
+func New() (Database, error) {
 	sourceUrl := "https://raw.githubusercontent.com/vikpe/qw-servers-geoip/main/ip_to_geo.json"
 	destPath := "ip_to_geo.json"
 	err := downloadFile(sourceUrl, destPath)
@@ -23,13 +37,13 @@ func GetData() (map[string]Info, error) {
 
 	geoJsonFile, _ := os.ReadFile(destPath)
 
-	var geoData map[string]Info
-	err = json.Unmarshal(geoJsonFile, &geoData)
+	var geoDatabase Database
+	err = json.Unmarshal(geoJsonFile, &geoDatabase)
 	if err != nil {
 		return nil, err
 	}
 
-	return geoData, nil
+	return geoDatabase, nil
 }
 
 func downloadFile(url string, dest string) error {
