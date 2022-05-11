@@ -5,6 +5,9 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"strings"
+
+	"github.com/vikpe/serverstat/qserver"
 )
 
 type Info struct {
@@ -27,7 +30,7 @@ func (db Database) Get(ip string) Info {
 	}
 }
 
-func New() (Database, error) {
+func NewDatabase() (Database, error) {
 	sourceUrl := "https://raw.githubusercontent.com/vikpe/qw-servers-geoip/main/ip_to_geo.json"
 	destPath := "ip_to_geo.json"
 	err := downloadFile(sourceUrl, destPath)
@@ -44,6 +47,25 @@ func New() (Database, error) {
 	}
 
 	return geoDatabase, nil
+}
+
+type ServerWithGeo struct {
+	qserver.GenericServer
+	Geo Info
+}
+
+func AppendGeo(servers []qserver.GenericServer, geoDb Database) []ServerWithGeo {
+	serversWithGeo := make([]ServerWithGeo, 0)
+
+	for _, server := range servers {
+		ip := strings.Split(server.Address, ":")[0]
+		serversWithGeo = append(serversWithGeo, ServerWithGeo{
+			GenericServer: server,
+			Geo:           geoDb.Get(ip),
+		})
+	}
+
+	return serversWithGeo
 }
 
 func downloadFile(url string, dest string) error {

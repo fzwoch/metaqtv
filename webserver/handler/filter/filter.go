@@ -1,6 +1,8 @@
 package filter
 
-import "github.com/vikpe/serverstat/qserver"
+import (
+	"metaqtv/geo"
+)
 
 func Filter[Type any](values []Type, validator func(Type) bool) []Type {
 	var result = make([]Type, 0)
@@ -12,24 +14,24 @@ func Filter[Type any](values []Type, validator func(Type) bool) []Type {
 	return result
 }
 
-func GameServers(servers []qserver.GenericServer) []qserver.GenericServer {
+func MvdsvServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
 	return Filter(servers, isGameServer)
 }
 
-func isGameServer(server qserver.GenericServer) bool {
+func isGameServer(server geo.ServerWithGeo) bool {
 	return server.Version.IsGameServer()
 }
 
-func ProxyServers(servers []qserver.GenericServer) []qserver.GenericServer {
+func ProxyServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
 	return Filter(servers, isProxyServer)
 }
 
-func isProxyServer(server qserver.GenericServer) bool {
+func isProxyServer(server geo.ServerWithGeo) bool {
 	return server.Version.IsProxy()
 }
 
-func QtvServers(servers []qserver.GenericServer) []qserver.GenericServer {
-	isQtvServer := func(server qserver.GenericServer) bool {
+func QtvServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
+	isQtvServer := func(server geo.ServerWithGeo) bool {
 		return server.Version.IsQtv()
 	}
 

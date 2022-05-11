@@ -9,7 +9,7 @@ import (
 
 	"github.com/vikpe/masterstat"
 	"github.com/vikpe/serverstat"
-	"github.com/vikpe/serverstat/qserver"
+	"metaqtv/geo"
 	"metaqtv/webserver"
 )
 
@@ -25,8 +25,11 @@ func main() {
 		os.Exit(1)
 	}
 
+	// geo data
+	geoDatabase, err := geo.NewDatabase()
+
 	// main loop
-	servers := make([]qserver.GenericServer, 0)
+	serversWithGeo := make([]geo.ServerWithGeo, 0)
 
 	go func() {
 		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
@@ -44,12 +47,13 @@ func main() {
 					log.Println("ERROR:", err)
 					return
 				}
-				servers = serverstat.GetInfoFromMany(serverAddresses)
+				servers := serverstat.GetInfoFromMany(serverAddresses)
+				serversWithGeo = geo.AppendGeo(servers, geoDatabase)
 			}()
 		}
 	}()
 
 	// web api
 	serverAddr := fmt.Sprintf(":%d", conf.httpPort)
-	webserver.Serve(serverAddr, &servers)
+	webserver.Serve(serverAddr, &serversWithGeo)
 }
