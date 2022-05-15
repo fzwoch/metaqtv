@@ -2,8 +2,8 @@ package transform
 
 import (
 	"github.com/vikpe/serverstat/qserver/mvdsv"
-	"github.com/vikpe/serverstat/qserver/proxy"
 	"github.com/vikpe/serverstat/qserver/qtv"
+	"github.com/vikpe/serverstat/qserver/qwfwd"
 	"metaqtv/geo"
 )
 
@@ -11,8 +11,8 @@ type MvdsvWithGeo struct {
 	mvdsv.Server
 	Geo geo.Info
 }
-type ProxyWithGeo struct {
-	proxy.Proxy
+type QwfwdWithGeo struct {
+	qwfwd.Qwfwd
 	Geo geo.Info
 }
 type QtvWithGeo struct {
@@ -33,12 +33,12 @@ func ToMvdsvServers(serversWithGeo []geo.ServerWithGeo) []MvdsvWithGeo {
 	return mvdsvServers
 }
 
-func ToProxies(serversWithGeo []geo.ServerWithGeo) []ProxyWithGeo {
-	proxies := make([]ProxyWithGeo, 0)
+func ToQwfwds(serversWithGeo []geo.ServerWithGeo) []QwfwdWithGeo {
+	proxies := make([]QwfwdWithGeo, 0)
 
 	for _, serverWithGeo := range serversWithGeo {
-		proxies = append(proxies, ProxyWithGeo{
-			Proxy: proxy.Parse(serverWithGeo.GenericServer),
+		proxies = append(proxies, QwfwdWithGeo{
+			Qwfwd: qwfwd.Parse(serverWithGeo.GenericServer),
 			Geo:   serverWithGeo.Geo,
 		})
 	}

@@ -19,10 +19,10 @@ func Mvdsv(servers *[]geo.ServerWithGeo) http.HandlerFunc {
 	}
 }
 
-func Proxies(servers *[]geo.ServerWithGeo) http.HandlerFunc {
+func Qwforwards(servers *[]geo.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		proxiesWithGeo := transform.ToProxies(filter.ProxyServers(*servers))
-		jsonResponse(proxiesWithGeo, w, r)
+		qwforwardsWithGeo := transform.ToQwfwds(filter.Qwforwards(*servers))
+		jsonResponse(qwforwardsWithGeo, w, r)
 	}
 }
 

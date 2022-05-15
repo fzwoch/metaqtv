@@ -14,7 +14,7 @@ func Serve(addr string, serversWithGeo *[]geo.ServerWithGeo) {
 	// endpoints
 	api := make(map[string]http.HandlerFunc, 0)
 	api["/servers"] = apiHandler.Mvdsv(serversWithGeo)
-	api["/proxies"] = apiHandler.Proxies(serversWithGeo)
+	api["/proxies"] = apiHandler.Qwforwards(serversWithGeo)
 	api["/qtv"] = apiHandler.Qtv(serversWithGeo)
 	api["/server_to_qtv"] = apiHandler.ServerToQtv(serversWithGeo)
 	api["/qtv_to_server"] = apiHandler.QtvToServer(serversWithGeo)

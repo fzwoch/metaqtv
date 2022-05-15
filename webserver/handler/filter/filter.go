@@ -15,19 +15,19 @@ func Filter[Type any](values []Type, validator func(Type) bool) []Type {
 }
 
 func MvdsvServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
-	return Filter(servers, isGameServer)
+	return Filter(servers, isMvdsvServer)
 }
 
-func isGameServer(server geo.ServerWithGeo) bool {
-	return server.Version.IsGameServer()
+func isMvdsvServer(server geo.ServerWithGeo) bool {
+	return server.Version.IsMvdsv()
 }
 
-func ProxyServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
-	return Filter(servers, isProxyServer)
+func Qwforwards(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
+	return Filter(servers, isQwfwd)
 }
 
-func isProxyServer(server geo.ServerWithGeo) bool {
-	return server.Version.IsProxy()
+func isQwfwd(server geo.ServerWithGeo) bool {
+	return server.Version.IsQwfwd()
 }
 
 func QtvServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
