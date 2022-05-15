@@ -1,6 +1,7 @@
 package transform
 
 import (
+	"github.com/vikpe/serverstat/qserver/convert"
 	"github.com/vikpe/serverstat/qserver/mvdsv"
 	"github.com/vikpe/serverstat/qserver/qtv"
 	"github.com/vikpe/serverstat/qserver/qwfwd"
@@ -8,7 +9,7 @@ import (
 )
 
 type MvdsvWithGeo struct {
-	mvdsv.Server
+	mvdsv.Mvdsv
 	Geo geo.Info
 }
 type QwfwdWithGeo struct {
@@ -25,8 +26,8 @@ func ToMvdsvServers(serversWithGeo []geo.ServerWithGeo) []MvdsvWithGeo {
 
 	for _, serverWithGeo := range serversWithGeo {
 		mvdsvServers = append(mvdsvServers, MvdsvWithGeo{
-			Server: mvdsv.Parse(serverWithGeo.GenericServer),
-			Geo:    serverWithGeo.Geo,
+			Mvdsv: convert.ToMvdsv(serverWithGeo.GenericServer),
+			Geo:   serverWithGeo.Geo,
 		})
 	}
 
@@ -38,7 +39,7 @@ func ToQwfwds(serversWithGeo []geo.ServerWithGeo) []QwfwdWithGeo {
 
 	for _, serverWithGeo := range serversWithGeo {
 		proxies = append(proxies, QwfwdWithGeo{
-			Qwfwd: qwfwd.Parse(serverWithGeo.GenericServer),
+			Qwfwd: convert.ToQwfwd(serverWithGeo.GenericServer),
 			Geo:   serverWithGeo.Geo,
 		})
 	}
@@ -51,7 +52,7 @@ func ToQtvServers(serversWithGeo []geo.ServerWithGeo) []QtvWithGeo {
 
 	for _, serverWithGeo := range serversWithGeo {
 		qtvServers = append(qtvServers, QtvWithGeo{
-			Qtv: qtv.Parse(serverWithGeo.GenericServer),
+			Qtv: convert.ToQtv(serverWithGeo.GenericServer),
 			Geo: serverWithGeo.Geo,
 		})
 	}
