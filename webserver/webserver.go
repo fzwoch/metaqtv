@@ -16,6 +16,7 @@ func Serve(addr string, serversWithGeo *[]geo.ServerWithGeo) {
 	api["/servers"] = apiHandler.Mvdsv(serversWithGeo)
 	api["/proxies"] = apiHandler.Qwforwards(serversWithGeo)
 	api["/qtv"] = apiHandler.Qtv(serversWithGeo)
+	api["/fortress"] = apiHandler.Fortress(serversWithGeo)
 	api["/server_to_qtv"] = apiHandler.ServerToQtv(serversWithGeo)
 	api["/qtv_to_server"] = apiHandler.QtvToServer(serversWithGeo)
 

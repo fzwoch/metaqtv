@@ -26,6 +26,13 @@ func Qwforwards(servers *[]geo.ServerWithGeo) http.HandlerFunc {
 	}
 }
 
+func Fortress(servers *[]geo.ServerWithGeo) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		qwforwardsWithGeo := filter.ForstressOneServers(*servers)
+		jsonResponse(qwforwardsWithGeo, w, r)
+	}
+}
+
 func Qtv(servers *[]geo.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		qtvServersWithGeo := transform.ToQtvServers(filter.QtvServers(*servers))

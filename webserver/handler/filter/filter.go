@@ -37,3 +37,11 @@ func QtvServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
 func isQtvServer(server geo.ServerWithGeo) bool {
 	return server.Version.IsQtv()
 }
+
+func ForstressOneServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
+	return Filter(servers, isForstressOneServer)
+}
+
+func isForstressOneServer(server geo.ServerWithGeo) bool {
+	return server.Version.IsFortressOne()
+}
