@@ -9,3 +9,5 @@ require (
 )
 
 require github.com/vikpe/udpclient v0.1.3 // indirect
+
+replace github.com/vikpe/serverstat => ../serverstat

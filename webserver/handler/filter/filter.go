@@ -31,9 +31,9 @@ func isQwfwd(server geo.ServerWithGeo) bool {
 }
 
 func QtvServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
-	isQtvServer := func(server geo.ServerWithGeo) bool {
-		return server.Version.IsQtv()
-	}
-
 	return Filter(servers, isQtvServer)
+}
+
+func isQtvServer(server geo.ServerWithGeo) bool {
+	return server.Version.IsQtv()
 }
