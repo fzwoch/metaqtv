@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/rs/cors"
 	"github.com/victorspringer/http-cache"
 	"github.com/victorspringer/http-cache/adapter/memory"
 	"metaqtv/geo"
@@ -21,13 +22,16 @@ func Serve(addr string, serversWithGeo *[]geo.ServerWithGeo) {
 	api["/qtv_to_server"] = apiHandler.QtvToServer(serversWithGeo)
 
 	// middleware
+	mux := http.NewServeMux() // CORS
 	cacheClient := getCacheClient()
 	for url, handler := range api {
-		http.Handle(url, cacheClient.Middleware(handler))
+		// http.Handle(url, cacheClient.Middleware(handler))
+		mux.Handle(url, cacheClient.Middleware(handler))
 	}
 
 	// serve
-	http.ListenAndServe(addr, nil)
+	handler := cors.Default().Handler(mux) // CORS
+	http.ListenAndServe(addr, handler)
 }
 
 func getCacheClient() *cache.Client {
