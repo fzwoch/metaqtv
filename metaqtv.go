@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"sync"
 	"time"
 
 	"github.com/vikpe/masterstat"
@@ -35,12 +34,7 @@ func main() {
 		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
 
 		for ; true; <-ticker.C {
-			wg := sync.WaitGroup{}
-			wg.Add(1)
-
 			go func() {
-				defer wg.Done()
-
 				serverAddresses, err := masterstat.GetServerAddressesFromMany(masters)
 
 				if err != nil {
