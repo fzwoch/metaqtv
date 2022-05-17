@@ -29,21 +29,41 @@ func main() {
 
 	// main loop
 	serversWithGeo := make([]geo.ServerWithGeo, 0)
+	serverAddresses := make([]string, 0)
+	masterUpdateInterval := 600
 
 	go func() {
-		ticker := time.NewTicker(time.Duration(conf.updateInterval) * time.Second)
+		ticker := time.NewTicker(time.Duration(1) * time.Second)
+		tick := -1
 
 		for ; true; <-ticker.C {
-			go func() {
-				serverAddresses, err := masterstat.GetServerAddressesFromMany(masters)
+			tick++
 
-				if err != nil {
-					log.Println("ERROR:", err)
-					return
+			go func() {
+				currentTick := tick
+
+				isTimeToUpdateFromMasters := 0 == currentTick
+
+				if isTimeToUpdateFromMasters {
+					serverAddresses, err = masterstat.GetServerAddressesFromMany(masters)
+
+					if err != nil {
+						log.Println("ERROR:", err)
+						return
+					}
 				}
-				servers := serverstat.GetInfoFromMany(serverAddresses)
-				serversWithGeo = geo.AppendGeo(servers, geoDatabase)
+
+				isTimeToUpdateServers := currentTick%conf.updateInterval == 0
+
+				if isTimeToUpdateServers {
+					servers := serverstat.GetInfoFromMany(serverAddresses)
+					serversWithGeo = geo.AppendGeo(servers, geoDatabase)
+				}
 			}()
+
+			if tick == masterUpdateInterval {
+				tick = 0
+			}
 		}
 	}()
 

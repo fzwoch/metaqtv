@@ -14,17 +14,17 @@ type AppConfig struct {
 
 func getConfig() AppConfig {
 	var (
-		httpPort       int
-		updateInterval int
+		httpPort             int
+		serverUpdateInterval int
 	)
 
 	flag.IntVar(&httpPort, "port", 3000, "HTTP listen port")
-	flag.IntVar(&updateInterval, "interval", 60, "Update interval in seconds")
+	flag.IntVar(&serverUpdateInterval, "interval", 10, "Server update interval in seconds")
 	flag.Parse()
 
 	return AppConfig{
 		httpPort:          httpPort,
-		updateInterval:    updateInterval,
+		updateInterval:    serverUpdateInterval,
 		masterServersFile: "master_servers.json",
 	}
 }
