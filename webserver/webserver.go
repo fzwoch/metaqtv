@@ -1,25 +1,26 @@
 package webserver
 
 import (
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/rs/cors"
 	"github.com/victorspringer/http-cache"
 	"github.com/victorspringer/http-cache/adapter/memory"
-	"metaqtv/geo"
+	"metaqtv/provider"
 	apiHandler "metaqtv/webserver/handler"
 )
 
-func Serve(addr string, serversWithGeo *[]geo.ServerWithGeo) {
+func Serve(httpPort int, dataSource func() []provider.ServerWithGeo) {
 	// endpoints
 	api := make(map[string]http.HandlerFunc, 0)
-	api["/servers"] = apiHandler.Mvdsv(serversWithGeo)
-	api["/proxies"] = apiHandler.Qwforwards(serversWithGeo)
-	api["/qtv"] = apiHandler.Qtv(serversWithGeo)
-	api["/fortress"] = apiHandler.Fortress(serversWithGeo)
-	api["/server_to_qtv"] = apiHandler.ServerToQtv(serversWithGeo)
-	api["/qtv_to_server"] = apiHandler.QtvToServer(serversWithGeo)
+	api["/servers"] = apiHandler.Mvdsv(dataSource)
+	api["/proxies"] = apiHandler.Qwforwards(dataSource)
+	api["/qtv"] = apiHandler.Qtv(dataSource)
+	api["/fortress"] = apiHandler.Fortress(dataSource)
+	api["/server_to_qtv"] = apiHandler.ServerToQtv(dataSource)
+	api["/qtv_to_server"] = apiHandler.QtvToServer(dataSource)
 
 	// middleware
 	mux := http.NewServeMux() // CORS
@@ -31,7 +32,8 @@ func Serve(addr string, serversWithGeo *[]geo.ServerWithGeo) {
 
 	// serve
 	handler := cors.Default().Handler(mux) // CORS
-	http.ListenAndServe(addr, handler)
+	serverAddr := fmt.Sprintf(":%d", httpPort)
+	http.ListenAndServe(serverAddr, handler)
 }
 
 func getCacheClient() *cache.Client {

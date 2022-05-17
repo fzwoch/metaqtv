@@ -7,48 +7,48 @@ import (
 	"net/http"
 	"strings"
 
-	"metaqtv/geo"
+	"metaqtv/provider"
 	"metaqtv/webserver/handler/filter"
 	"metaqtv/webserver/handler/transform"
 )
 
-func Mvdsv(servers *[]geo.ServerWithGeo) http.HandlerFunc {
+func Mvdsv(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		mvdsvServersWithGeo := transform.ToMvdsvServers(filter.MvdsvServers(*servers))
+		mvdsvServersWithGeo := transform.ToMvdsvServers(filter.MvdsvServers(dataSource()))
 		jsonResponse(mvdsvServersWithGeo, w, r)
 	}
 }
 
-func Qwforwards(servers *[]geo.ServerWithGeo) http.HandlerFunc {
+func Qwforwards(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		qwforwardsWithGeo := transform.ToQwfwds(filter.Qwforwards(*servers))
+		qwforwardsWithGeo := transform.ToQwfwds(filter.Qwforwards(dataSource()))
 		jsonResponse(qwforwardsWithGeo, w, r)
 	}
 }
 
-func Fortress(servers *[]geo.ServerWithGeo) http.HandlerFunc {
+func Fortress(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		qwforwardsWithGeo := filter.ForstressOneServers(*servers)
+		qwforwardsWithGeo := filter.ForstressOneServers(dataSource())
 		jsonResponse(qwforwardsWithGeo, w, r)
 	}
 }
 
-func Qtv(servers *[]geo.ServerWithGeo) http.HandlerFunc {
+func Qtv(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		qtvServersWithGeo := transform.ToQtvServers(filter.QtvServers(*servers))
+		qtvServersWithGeo := transform.ToQtvServers(filter.QtvServers(dataSource()))
 		jsonResponse(qtvServersWithGeo, w, r)
 	}
 }
 
-func ServerToQtv(servers *[]geo.ServerWithGeo) http.HandlerFunc {
+func ServerToQtv(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		jsonResponse(transform.ServerAddressToQtvStreamUrlMap(*servers), w, r)
+		jsonResponse(transform.ServerAddressToQtvStreamUrlMap(dataSource()), w, r)
 	}
 }
 
-func QtvToServer(servers *[]geo.ServerWithGeo) http.HandlerFunc {
+func QtvToServer(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		jsonResponse(transform.QtvStreamUrlToServerAddressMap(*servers), w, r)
+		jsonResponse(transform.QtvStreamUrlToServerAddressMap(dataSource()), w, r)
 	}
 }
 

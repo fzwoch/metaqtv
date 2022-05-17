@@ -1,7 +1,7 @@
 package filter
 
 import (
-	"metaqtv/geo"
+	"metaqtv/provider"
 )
 
 func Filter[Type any](values []Type, validator func(Type) bool) []Type {
@@ -14,34 +14,34 @@ func Filter[Type any](values []Type, validator func(Type) bool) []Type {
 	return result
 }
 
-func MvdsvServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
+func MvdsvServers(servers []provider.ServerWithGeo) []provider.ServerWithGeo {
 	return Filter(servers, isMvdsvServer)
 }
 
-func isMvdsvServer(server geo.ServerWithGeo) bool {
+func isMvdsvServer(server provider.ServerWithGeo) bool {
 	return server.Version.IsMvdsv()
 }
 
-func Qwforwards(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
+func Qwforwards(servers []provider.ServerWithGeo) []provider.ServerWithGeo {
 	return Filter(servers, isQwfwd)
 }
 
-func isQwfwd(server geo.ServerWithGeo) bool {
+func isQwfwd(server provider.ServerWithGeo) bool {
 	return server.Version.IsQwfwd()
 }
 
-func QtvServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
+func QtvServers(servers []provider.ServerWithGeo) []provider.ServerWithGeo {
 	return Filter(servers, isQtvServer)
 }
 
-func isQtvServer(server geo.ServerWithGeo) bool {
+func isQtvServer(server provider.ServerWithGeo) bool {
 	return server.Version.IsQtv()
 }
 
-func ForstressOneServers(servers []geo.ServerWithGeo) []geo.ServerWithGeo {
+func ForstressOneServers(servers []provider.ServerWithGeo) []provider.ServerWithGeo {
 	return Filter(servers, isForstressOneServer)
 }
 
-func isForstressOneServer(server geo.ServerWithGeo) bool {
+func isForstressOneServer(server provider.ServerWithGeo) bool {
 	return server.Version.IsFortressOne()
 }

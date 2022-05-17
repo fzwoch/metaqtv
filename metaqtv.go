@@ -1,14 +1,11 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"os"
-	"time"
 
-	"github.com/vikpe/masterstat"
-	"github.com/vikpe/serverstat"
 	"metaqtv/geo"
+	"metaqtv/provider"
 	"metaqtv/webserver"
 )
 
@@ -25,49 +22,12 @@ func main() {
 	}
 
 	// geo data
-	geoDatabase, err := geo.NewDatabase()
+	geoDatabase, _ := geo.NewDatabase()
 
-	// main loop
-	serversWithGeo := make([]geo.ServerWithGeo, 0)
-	serverAddresses := make([]string, 0)
-	masterUpdateInterval := 600
-
-	go func() {
-		ticker := time.NewTicker(time.Duration(1) * time.Second)
-		tick := -1
-
-		for ; true; <-ticker.C {
-			tick++
-
-			go func() {
-				currentTick := tick
-
-				isTimeToUpdateFromMasters := 0 == currentTick
-
-				if isTimeToUpdateFromMasters {
-					serverAddresses, err = masterstat.GetServerAddressesFromMany(masters)
-
-					if err != nil {
-						log.Println("ERROR:", err)
-						return
-					}
-				}
-
-				isTimeToUpdateServers := currentTick%conf.updateInterval == 0
-
-				if isTimeToUpdateServers {
-					servers := serverstat.GetInfoFromMany(serverAddresses)
-					serversWithGeo = geo.AppendGeo(servers, geoDatabase)
-				}
-			}()
-
-			if tick == masterUpdateInterval {
-				tick = 0
-			}
-		}
-	}()
+	// server scraper
+	serverScraper := provider.New(masters, geoDatabase)
+	serverScraper.Start()
 
 	// web api
-	serverAddr := fmt.Sprintf(":%d", conf.httpPort)
-	webserver.Serve(serverAddr, &serversWithGeo)
+	webserver.Serve(conf.httpPort, serverScraper.Servers)
 }

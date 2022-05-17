@@ -6,6 +6,7 @@ import (
 	"github.com/vikpe/serverstat/qserver/qtv"
 	"github.com/vikpe/serverstat/qserver/qwfwd"
 	"metaqtv/geo"
+	"metaqtv/provider"
 )
 
 type MvdsvWithGeo struct {
@@ -21,7 +22,7 @@ type QtvWithGeo struct {
 	Geo geo.Info
 }
 
-func ToMvdsvServers(serversWithGeo []geo.ServerWithGeo) []MvdsvWithGeo {
+func ToMvdsvServers(serversWithGeo []provider.ServerWithGeo) []MvdsvWithGeo {
 	mvdsvServers := make([]MvdsvWithGeo, 0)
 
 	for _, serverWithGeo := range serversWithGeo {
@@ -34,7 +35,7 @@ func ToMvdsvServers(serversWithGeo []geo.ServerWithGeo) []MvdsvWithGeo {
 	return mvdsvServers
 }
 
-func ToQwfwds(serversWithGeo []geo.ServerWithGeo) []QwfwdWithGeo {
+func ToQwfwds(serversWithGeo []provider.ServerWithGeo) []QwfwdWithGeo {
 	proxies := make([]QwfwdWithGeo, 0)
 
 	for _, serverWithGeo := range serversWithGeo {
@@ -47,7 +48,7 @@ func ToQwfwds(serversWithGeo []geo.ServerWithGeo) []QwfwdWithGeo {
 	return proxies
 }
 
-func ToQtvServers(serversWithGeo []geo.ServerWithGeo) []QtvWithGeo {
+func ToQtvServers(serversWithGeo []provider.ServerWithGeo) []QtvWithGeo {
 	qtvServers := make([]QtvWithGeo, 0)
 
 	for _, serverWithGeo := range serversWithGeo {
@@ -60,7 +61,7 @@ func ToQtvServers(serversWithGeo []geo.ServerWithGeo) []QtvWithGeo {
 	return qtvServers
 }
 
-func ServerAddressToQtvStreamUrlMap(servers []geo.ServerWithGeo) map[string]string {
+func ServerAddressToQtvStreamUrlMap(servers []provider.ServerWithGeo) map[string]string {
 	serverToQtv := make(map[string]string, 0)
 
 	for _, server := range servers {
@@ -72,7 +73,7 @@ func ServerAddressToQtvStreamUrlMap(servers []geo.ServerWithGeo) map[string]stri
 	return serverToQtv
 }
 
-func QtvStreamUrlToServerAddressMap(servers []geo.ServerWithGeo) map[string]string {
+func QtvStreamUrlToServerAddressMap(servers []provider.ServerWithGeo) map[string]string {
 	return ReverseStringMap(ServerAddressToQtvStreamUrlMap(servers))
 }
 
