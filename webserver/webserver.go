@@ -41,7 +41,7 @@ func getCacheClient() *cache.Client {
 	)
 	cacheClient, _ := cache.NewClient(
 		cache.ClientWithAdapter(memcached),
-		cache.ClientWithTTL(5*time.Second),
+		cache.ClientWithTTL(9*time.Second),
 	)
 
 	return cacheClient
