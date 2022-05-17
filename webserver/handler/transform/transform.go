@@ -9,17 +9,14 @@ import (
 )
 
 type MvdsvWithGeo struct {
-	Type string
 	mvdsv.MvdsvExport
 	Geo geo.Info
 }
 type QwfwdWithGeo struct {
-	Type string
 	qwfwd.Qwfwd
 	Geo geo.Info
 }
 type QtvWithGeo struct {
-	Type string
 	qtv.Qtv
 	Geo geo.Info
 }
@@ -29,7 +26,6 @@ func ToMvdsvServers(serversWithGeo []geo.ServerWithGeo) []MvdsvWithGeo {
 
 	for _, serverWithGeo := range serversWithGeo {
 		mvdsvServers = append(mvdsvServers, MvdsvWithGeo{
-			Type:        mvdsv.Name,
 			MvdsvExport: mvdsv.Export(convert.ToMvdsv(serverWithGeo.GenericServer)),
 			Geo:         serverWithGeo.Geo,
 		})
@@ -43,7 +39,6 @@ func ToQwfwds(serversWithGeo []geo.ServerWithGeo) []QwfwdWithGeo {
 
 	for _, serverWithGeo := range serversWithGeo {
 		proxies = append(proxies, QwfwdWithGeo{
-			Type:  qwfwd.Name,
 			Qwfwd: convert.ToQwfwd(serverWithGeo.GenericServer),
 			Geo:   serverWithGeo.Geo,
 		})
@@ -57,9 +52,8 @@ func ToQtvServers(serversWithGeo []geo.ServerWithGeo) []QtvWithGeo {
 
 	for _, serverWithGeo := range serversWithGeo {
 		qtvServers = append(qtvServers, QtvWithGeo{
-			Type: qtv.Name,
-			Qtv:  convert.ToQtv(serverWithGeo.GenericServer),
-			Geo:  serverWithGeo.Geo,
+			Qtv: convert.ToQtv(serverWithGeo.GenericServer),
+			Geo: serverWithGeo.Geo,
 		})
 	}
 
