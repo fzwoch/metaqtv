@@ -30,7 +30,7 @@ func ToMvdsvServers(serversWithGeo []geo.ServerWithGeo) []MvdsvWithGeo {
 	for _, serverWithGeo := range serversWithGeo {
 		mvdsvServers = append(mvdsvServers, MvdsvWithGeo{
 			Type:        mvdsv.Name,
-			MvdsvExport: convert.ToMvdsv(serverWithGeo.GenericServer).Export(),
+			MvdsvExport: mvdsv.Export(convert.ToMvdsv(serverWithGeo.GenericServer)),
 			Geo:         serverWithGeo.Geo,
 		})
 	}
