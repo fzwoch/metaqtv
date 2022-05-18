@@ -21,7 +21,7 @@ func NewServerIndex(servers []qserver.GenericServer) ServerIndex {
 	return index
 }
 
-func (index ServerIndex) Values() []qserver.GenericServer {
+func (index ServerIndex) Servers() []qserver.GenericServer {
 	servers := make([]qserver.GenericServer, 0)
 
 	for _, server := range index {
@@ -31,29 +31,51 @@ func (index ServerIndex) Values() []qserver.GenericServer {
 	return servers
 }
 
+func (index ServerIndex) ActiveAddresses() []string {
+	activeAddresses := make([]string, 0)
+
+	for _, server := range index.Servers() {
+		if server.HasPlayers() {
+			activeAddresses = append(activeAddresses, server.Address)
+		}
+	}
+
+	return activeAddresses
+}
+
+func (index ServerIndex) Update(servers []qserver.GenericServer) {
+	for _, server := range servers {
+		index[server.Address] = server
+	}
+}
+
 type ServerScraper struct {
-	masters    []string
-	index      ServerIndex
-	shouldStop bool
+	masters         []string
+	index           ServerIndex
+	serverAddresses []string
+	shouldStop      bool
 }
 
 func NewServerScraper(masters []string) ServerScraper {
 	return ServerScraper{
-		masters:    masters,
-		index:      make(ServerIndex, 0),
-		shouldStop: false,
+		masters:         masters,
+		index:           make(ServerIndex, 0),
+		serverAddresses: make([]string, 0),
+		shouldStop:      false,
 	}
 }
 
 func (sp *ServerScraper) Servers() []qserver.GenericServer {
-	return sp.index.Values()
+	return sp.index.Servers()
 }
 
 func (sp *ServerScraper) Start() {
 	masterUpdateInterval := 600
-	sp.shouldStop = false
+	serverUpdateInterval := 30
+	activeServerUpdateInterval := 5
 
 	serverAddresses := make([]string, 0)
+	sp.shouldStop = false
 
 	go func() {
 		ticker := time.NewTicker(time.Duration(1) * time.Second)
@@ -81,10 +103,14 @@ func (sp *ServerScraper) Start() {
 					}
 				}
 
-				isTimeToUpdateServers := currentTick%10 == 0
+				isTimeToUpdateAllServers := currentTick%serverUpdateInterval == 0
+				isTimeToUpdateActiveServers := currentTick%activeServerUpdateInterval == 0
 
-				if isTimeToUpdateServers {
+				if isTimeToUpdateAllServers {
 					sp.index = NewServerIndex(serverstat.GetInfoFromMany(serverAddresses))
+				} else if isTimeToUpdateActiveServers {
+					activeAddresses := sp.index.ActiveAddresses()
+					sp.index.Update(serverstat.GetInfoFromMany(activeAddresses))
 				}
 			}()
 
