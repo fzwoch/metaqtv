@@ -9,22 +9,44 @@ import (
 	"github.com/vikpe/serverstat/qserver"
 )
 
+type ServerIndex map[string]qserver.GenericServer
+
+func NewServerIndex(servers []qserver.GenericServer) ServerIndex {
+	index := make(ServerIndex, 0)
+
+	for _, server := range servers {
+		index[server.Address] = server
+	}
+
+	return index
+}
+
+func (index ServerIndex) Values() []qserver.GenericServer {
+	servers := make([]qserver.GenericServer, 0)
+
+	for _, server := range index {
+		servers = append(servers, server)
+	}
+
+	return servers
+}
+
 type ServerScraper struct {
 	masters    []string
-	servers    []qserver.GenericServer
+	index      ServerIndex
 	shouldStop bool
 }
 
 func NewServerScraper(masters []string) ServerScraper {
 	return ServerScraper{
 		masters:    masters,
-		servers:    make([]qserver.GenericServer, 0),
+		index:      make(ServerIndex, 0),
 		shouldStop: false,
 	}
 }
 
 func (sp *ServerScraper) Servers() []qserver.GenericServer {
-	return sp.servers
+	return sp.index.Values()
 }
 
 func (sp *ServerScraper) Start() {
@@ -62,7 +84,7 @@ func (sp *ServerScraper) Start() {
 				isTimeToUpdateServers := currentTick%10 == 0
 
 				if isTimeToUpdateServers {
-					sp.servers = serverstat.GetInfoFromMany(serverAddresses)
+					sp.index = NewServerIndex(serverstat.GetInfoFromMany(serverAddresses))
 				}
 			}()
 
