@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -36,7 +37,12 @@ func (server HttpServer) Serve(port int) {
 	// serve
 	serverAddress := fmt.Sprintf(":%d", port)
 	handler := cors.Default().Handler(mux) // CORS
-	http.ListenAndServe(serverAddress, handler)
+	err := http.ListenAndServe(serverAddress, handler)
+
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 }
 
 func getCacheClient() *cache.Client {
