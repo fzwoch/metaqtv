@@ -6,26 +6,22 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/vikpe/serverstat/qserver/geo"
 )
 
-type Info struct {
-	CC      string
-	Country string
-	Region  string
-}
+type Database map[string]geo.Info
 
-type Database map[string]Info
-
-func (db Database) GetByAddress(address string) Info {
+func (db Database) GetByAddress(address string) geo.Info {
 	ip := strings.Split(address, ":")[0]
 	return db.GetByIp(ip)
 }
 
-func (db Database) GetByIp(ip string) Info {
+func (db Database) GetByIp(ip string) geo.Info {
 	if _, ok := db[ip]; ok {
 		return db[ip]
 	} else {
-		return Info{
+		return geo.Info{
 			CC:      "",
 			Country: "",
 			Region:  "",
