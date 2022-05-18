@@ -1,52 +1,29 @@
-package provider
+package scrape
 
 import (
 	"log"
-	"strings"
 	"time"
 
 	"github.com/vikpe/masterstat"
 	"github.com/vikpe/serverstat"
 	"github.com/vikpe/serverstat/qserver"
-	"metaqtv/geo"
 )
-
-type ServerWithGeo struct {
-	qserver.GenericServer
-	Geo geo.Info
-}
-
-func AppendGeo(servers []qserver.GenericServer, geoDb geo.Database) []ServerWithGeo {
-	serversWithGeo := make([]ServerWithGeo, 0)
-
-	for _, server := range servers {
-		ip := strings.Split(server.Address, ":")[0]
-		serversWithGeo = append(serversWithGeo, ServerWithGeo{
-			GenericServer: server,
-			Geo:           geoDb.Get(ip),
-		})
-	}
-
-	return serversWithGeo
-}
 
 type ServerScraper struct {
 	masters    []string
-	servers    []ServerWithGeo
+	servers    []qserver.GenericServer
 	shouldStop bool
-	geoDb      geo.Database
 }
 
-func New(masters []string, geoDb geo.Database) ServerScraper {
+func NewServerScraper(masters []string) ServerScraper {
 	return ServerScraper{
 		masters:    masters,
-		servers:    make([]ServerWithGeo, 0),
+		servers:    make([]qserver.GenericServer, 0),
 		shouldStop: false,
-		geoDb:      geoDb,
 	}
 }
 
-func (sp *ServerScraper) Servers() []ServerWithGeo {
+func (sp *ServerScraper) Servers() []qserver.GenericServer {
 	return sp.servers
 }
 
@@ -85,8 +62,7 @@ func (sp *ServerScraper) Start() {
 				isTimeToUpdateServers := currentTick%10 == 0
 
 				if isTimeToUpdateServers {
-					servers := serverstat.GetInfoFromMany(serverAddresses)
-					sp.servers = AppendGeo(servers, sp.geoDb)
+					sp.servers = serverstat.GetInfoFromMany(serverAddresses)
 				}
 			}()
 

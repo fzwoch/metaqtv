@@ -7,52 +7,42 @@ import (
 	"net/http"
 	"strings"
 
-	"metaqtv/provider"
-	"metaqtv/webserver/handler/filter"
-	"metaqtv/webserver/handler/transform"
+	"metaqtv/scrape"
+	"metaqtv/transform"
 )
 
-func Mvdsv(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
+func Mvdsv(dataSource func() []transform.MvdsvWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		mvdsvServersWithGeo := transform.ToMvdsvServers(filter.MvdsvServers(dataSource()))
-		jsonResponse(mvdsvServersWithGeo, w, r)
+		JsonResponse(dataSource(), w, r)
 	}
 }
 
-func Qwforwards(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
+func Qwforwards(dataSource func() []transform.QwfwdWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		qwforwardsWithGeo := transform.ToQwfwds(filter.Qwforwards(dataSource()))
-		jsonResponse(qwforwardsWithGeo, w, r)
+		JsonResponse(dataSource(), w, r)
 	}
 }
 
-func Fortress(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		qwforwardsWithGeo := filter.ForstressOneServers(dataSource())
-		jsonResponse(qwforwardsWithGeo, w, r)
-	}
-}
-
-func Qtv(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
+func Qtv(dataSource func() []transform.QtvWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		qtvServersWithGeo := transform.ToQtvServers(filter.QtvServers(dataSource()))
-		jsonResponse(qtvServersWithGeo, w, r)
+		JsonResponse(qtvServersWithGeo, w, r)
 	}
 }
 
-func ServerToQtv(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
+func ServerToQtv(dataSource func() []transform.QtvWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		jsonResponse(transform.ServerAddressToQtvStreamUrlMap(dataSource()), w, r)
+		JsonResponse(transform.ServerAddressToQtvStreamUrlMap(dataSource()), w, r)
 	}
 }
 
-func QtvToServer(dataSource func() []provider.ServerWithGeo) http.HandlerFunc {
+func QtvToServer(dataSource func() []scrape.ServerWithGeo) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		jsonResponse(transform.QtvStreamUrlToServerAddressMap(dataSource()), w, r)
+		JsonResponse(transform.QtvStreamUrlToServerAddressMap(dataSource()), w, r)
 	}
 }
 
-func jsonResponse(data any, response http.ResponseWriter, request *http.Request) {
+func JsonResponse(data any, response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
 	responseBody, _ := json.MarshalIndent(data, "", "\t")
 	acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")

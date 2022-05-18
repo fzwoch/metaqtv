@@ -1,10 +1,11 @@
-package geo
+package geodb
 
 import (
 	"encoding/json"
 	"io"
 	"net/http"
 	"os"
+	"strings"
 )
 
 type Info struct {
@@ -15,7 +16,12 @@ type Info struct {
 
 type Database map[string]Info
 
-func (db Database) Get(ip string) Info {
+func (db Database) GetByAddress(address string) Info {
+	ip := strings.Split(address, ":")[0]
+	return db.GetByIp(ip)
+}
+
+func (db Database) GetByIp(ip string) Info {
 	if _, ok := db[ip]; ok {
 		return db[ip]
 	} else {
@@ -27,7 +33,7 @@ func (db Database) Get(ip string) Info {
 	}
 }
 
-func NewDatabase() (Database, error) {
+func New() (Database, error) {
 	sourceUrl := "https://raw.githubusercontent.com/vikpe/qw-servers-geoip/main/ip_to_geo.json"
 	destPath := "ip_to_geo.json"
 	err := downloadFile(sourceUrl, destPath)

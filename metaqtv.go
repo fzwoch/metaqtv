@@ -4,8 +4,9 @@ import (
 	"log"
 	"os"
 
-	"metaqtv/geo"
-	"metaqtv/provider"
+	"metaqtv/geodb"
+	"metaqtv/scrape"
+	"metaqtv/transform"
 	"metaqtv/webserver"
 )
 
@@ -22,12 +23,27 @@ func main() {
 	}
 
 	// geo data
-	geoDatabase, _ := geo.NewDatabase()
+	geoDatabase, _ := geodb.New()
 
 	// server scraper
-	serverScraper := provider.New(masters, geoDatabase)
+	serverScraper := scrape.NewServerScraper(masters)
 	serverScraper.Start()
 
+	transformer := transform.ServerTransformer{GeoDb: geoDatabase}
+
+	type DataProvider struct {
+		scraper     scrape.ServerScraper
+		transformer transform.ServerTransformer
+		Mvdsv       func() []transform.MvdsvWithGeo
+		Qtv         func() []transform.QtvWithGeo
+		Qwfwd       func() []transform.QwfwdWithGeo
+	}
+
+	provider := DataProvider{
+		scraper:     serverScraper,
+		transformer: transformer,
+	}
+
 	// web api
-	webserver.Serve(conf.httpPort, serverScraper.Servers)
+	webserver.Serve(conf.httpPort, serverScraper)
 }
