@@ -60,14 +60,13 @@ func getCacheClient() *cache.Client {
 
 func HandlerBySource(source func() any) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		responseBody, _ := json.MarshalIndent(source(), "", "\t")
+		responseBody, _ := jsonMarshalNoEscapeHtml(source())
 		JsonResponse(responseBody, w, r)
 	}
 }
 
 func JsonResponse(responseBody []byte, response http.ResponseWriter, request *http.Request) {
 	response.Header().Set("Content-Type", "application/json")
-	//responseBody, _ := json.MarshalIndent(data, "", "\t")
 	acceptsGzipEncoding := strings.Contains(request.Header.Get("Accept-Encoding"), "gzip")
 
 	if acceptsGzipEncoding {
@@ -76,6 +75,18 @@ func JsonResponse(responseBody []byte, response http.ResponseWriter, request *ht
 	}
 
 	response.Write(responseBody)
+}
+
+func jsonMarshalNoEscapeHtml(value any) ([]byte, error) {
+	var dst bytes.Buffer
+	enc := json.NewEncoder(&dst)
+	enc.SetEscapeHTML(false)
+	enc.SetIndent("", "\t")
+	err := enc.Encode(value)
+	if err != nil {
+		return nil, err
+	}
+	return dst.Bytes(), nil
 }
 
 func gzipCompress(data []byte) []byte {
