@@ -58,7 +58,7 @@ func (dp DataProvider) Qwdwd() []qwfwd.QwfwdExport {
 	result := make([]qwfwd.QwfwdExport, 0)
 
 	for _, server := range dp.scraper.Servers() {
-		if server.Version.IsQtv() {
+		if server.Version.IsQwfwd() {
 			qwfwdExport := convert.ToQwfwdExport(server)
 			qwfwdExport.Geo = dp.geoDb.GetByAddress(server.Address)
 			result = append(result, qwfwdExport)
