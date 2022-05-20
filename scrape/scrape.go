@@ -60,14 +60,28 @@ func (index ServerIndex) Update(servers []qserver.GenericServer) {
 }
 
 type ServerScraper struct {
+	Config          Config
 	masters         []string
 	index           ServerIndex
 	serverAddresses []string
 	shouldStop      bool
 }
 
+type Config struct {
+	MasterInterval       int
+	ServerInterval       int
+	ActiveServerInterval int
+}
+
+var DefaultConfig = Config{
+	MasterInterval:       600,
+	ServerInterval:       30,
+	ActiveServerInterval: 5,
+}
+
 func NewServerScraper(masters []string) ServerScraper {
 	return ServerScraper{
+		Config:          DefaultConfig,
 		masters:         masters,
 		index:           make(ServerIndex, 0),
 		serverAddresses: make([]string, 0),
@@ -80,10 +94,6 @@ func (sp *ServerScraper) Servers() []qserver.GenericServer {
 }
 
 func (sp *ServerScraper) Start() {
-	masterUpdateInterval := 600
-	serverUpdateInterval := 30
-	activeServerUpdateInterval := 5
-
 	serverAddresses := make([]string, 0)
 	sp.shouldStop = false
 
@@ -113,8 +123,8 @@ func (sp *ServerScraper) Start() {
 					}
 				}
 
-				isTimeToUpdateAllServers := currentTick%serverUpdateInterval == 0
-				isTimeToUpdateActiveServers := currentTick%activeServerUpdateInterval == 0
+				isTimeToUpdateAllServers := currentTick%sp.Config.ServerInterval == 0
+				isTimeToUpdateActiveServers := currentTick%sp.Config.ActiveServerInterval == 0
 
 				if isTimeToUpdateAllServers {
 					sp.index = NewServerIndex(serverstat.GetInfoFromMany(serverAddresses))
@@ -124,7 +134,7 @@ func (sp *ServerScraper) Start() {
 				}
 			}()
 
-			if tick == masterUpdateInterval {
+			if tick == sp.Config.MasterInterval {
 				tick = 0
 			}
 		}
