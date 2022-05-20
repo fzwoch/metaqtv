@@ -5,23 +5,25 @@
 ## Usage
 
 ```sh
-metaqtv [-interval INTERVAL] [-port PORT]
+metaqtv [-master INTERVAL] [-server INTERVAL] [-active INTERVAL] [-port PORT]
 ```
 
-| arg        | type  | description                | default | 
-|------------|-------|----------------------------|---------|
-| `interval` | `int` | Update interval in seconds | `60`    | 
-| `port`     | `int` | HTTP listen port           | `3000`  |
+| arg      | type  | description                   | default | 
+|----------|-------|-------------------------------|---------|
+| `port`   | `int` | HTTP listen port              | `3000`  |
+| `master` | `int` | Master server update interval | `600`   |
+| `server` | `int` | Server update interval        | `30`    |
+| `active` | `int` | Active server update interval | `3`     |
 
 ## API endpoints
 
-| URL               | description                            |  
-|-------------------|----------------------------------------|
-| `/servers`        | "Normal" Quake servers                 |  
-| `/proxies`        | Proxies                                |  
-| `/qtv`            | QTV servers                            |  
-| `/qtv_to_server`  | Map of QTV streams to server addresses |  
-| `/server_to_qtv`  | Map of server addresses to QTV streams |  
+| URL                 | description                            |  
+|---------------------|----------------------------------------|
+| `/v2/servers`       | Mvdsv servers                          |  
+| `/v2/qwfwd`         | Qwfwd servers (proxies)                |  
+| `/v2/qtv`           | QTV servers                            |  
+| `/v2/qtv_to_server` | Map of QTV streams to server addresses |  
+| `/v2/server_to_qtv` | Map of server addresses to QTV streams |  
 
 ## Config
 
@@ -51,3 +53,4 @@ $ go build
 
 * eb
 * Tuna
+* XantoM
