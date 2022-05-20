@@ -34,10 +34,16 @@ func Serve(port int, endpoints Endpoints) {
 	}
 
 	// serve
-	serverAddress := fmt.Sprintf(":%d", 3000)
+	serverAddress := fmt.Sprintf(":%d", port)
 	handler := cors.Default().Handler(mux) // CORS
-	err := http.ListenAndServe(serverAddress, handler)
-	//err := http.ListenAndServeTLS(serverAddress, "server.crt", "server.key", handler)
+
+	var err error
+
+	if 443 == port {
+		err = http.ListenAndServeTLS(serverAddress, "server.crt", "server.key", handler)
+	} else {
+		err = http.ListenAndServe(serverAddress, handler)
+	}
 
 	if err != nil {
 		fmt.Println(err)
