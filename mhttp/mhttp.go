@@ -26,26 +26,17 @@ func NewServer() HttpServer {
 }
 
 func (server HttpServer) Serve(port int) {
-	isDevelopment := false
-
-	var handler http.Handler
+	// middleware
+	mux := http.NewServeMux() // CORS
 	cacheClient := getCacheClient()
-
-	if isDevelopment {
-		mux := http.NewServeMux() // CORS
-		for url, handler := range server.Endpoints {
-			mux.Handle(url, cacheClient.Middleware(handler))
-		}
-		handler = cors.Default().Handler(mux) // CORS
-	} else {
-		for url, handler := range server.Endpoints {
-			http.Handle(url, cacheClient.Middleware(handler))
-		}
-		handler = nil
+	for url, handler := range server.Endpoints {
+		// http.Handle(url, cacheClient.Middleware(handler))
+		mux.Handle(url, cacheClient.Middleware(handler))
 	}
 
 	// serve
 	serverAddress := fmt.Sprintf(":%d", port)
+	handler := cors.Default().Handler(mux) // CORS
 	err := http.ListenAndServe(serverAddress, handler)
 
 	if err != nil {
