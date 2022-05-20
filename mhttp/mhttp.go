@@ -35,7 +35,7 @@ func (server HttpServer) Serve(port int) {
 	}
 
 	// serve
-	serverAddress := fmt.Sprintf(":%d", port)
+	serverAddress := fmt.Sprintf(":%d", 443)
 	handler := cors.Default().Handler(mux) // CORS
 	// err := http.ListenAndServe(serverAddress, handler)
 	err := http.ListenAndServeTLS(serverAddress, "server.crt", "server.key", handler)
