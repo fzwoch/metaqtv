@@ -45,7 +45,7 @@ func GameStateFromMdvsv(mvdsv mvdsv.MvdsvExport) GameState {
 		Hostname:  ip,
 		IpAddress: ip,
 		Port:      port,
-		Link:      fmt.Sprintf("http://%s/watch.qtv?sid=3", mvdsv.Address),
+		Link:      fmt.Sprintf("http://%s/watch.qtv?sid=%d", mvdsv.QtvStream.Address, mvdsv.QtvStream.Id),
 		Players:   players,
 	}
 }
@@ -54,7 +54,7 @@ func ToGameStates(servers []mvdsv.MvdsvExport) []GameState {
 	states := make([]GameState, 0)
 
 	for _, s := range servers {
-		if s.QtvStream.Url != "" {
+		if "" != s.QtvStream.Address {
 			states = append(states, GameStateFromMdvsv(s))
 		}
 	}

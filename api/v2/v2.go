@@ -27,8 +27,8 @@ func ServerToQtvHandler(serverSource func() []qserver.GenericServer) http.Handle
 	getServerToQtvMap := func() any {
 		serverToQtv := make(map[string]string, 0)
 		for _, server := range serverSource() {
-			if "" != server.ExtraInfo.QtvStream.Url {
-				serverToQtv[server.Address] = server.ExtraInfo.QtvStream.Url
+			if "" != server.ExtraInfo.QtvStream.Address {
+				serverToQtv[server.Address] = server.ExtraInfo.QtvStream.Url()
 			}
 		}
 		return serverToQtv
@@ -41,8 +41,8 @@ func QtvToServerHandler(serverSource func() []qserver.GenericServer) http.Handle
 	getServerToQtvMap := func() any {
 		serverToQtv := make(map[string]string, 0)
 		for _, server := range serverSource() {
-			if "" != server.ExtraInfo.QtvStream.Url {
-				serverToQtv[server.ExtraInfo.QtvStream.Url] = server.Address
+			if "" != server.ExtraInfo.QtvStream.Address {
+				serverToQtv[server.ExtraInfo.QtvStream.Url()] = server.Address
 			}
 		}
 		return serverToQtv
