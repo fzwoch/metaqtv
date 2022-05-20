@@ -58,7 +58,7 @@ func New(baseUrl string, provider *dataprovider.DataProvider) mhttp.Api {
 		Endpoints: mhttp.Endpoints{
 			"servers":       MvdsvHandler(provider.Mvdsv),
 			"qtv":           QtvHandler(provider.Qtv),
-			"qwfwd":         QwfwdHandler(provider.Qwdwd),
+			"qwfwd":         QwfwdHandler(provider.Qwfwd),
 			"server_to_qtv": ServerToQtvHandler(provider.Generic),
 			"qtv_to_server": QtvToServerHandler(provider.Generic),
 		},

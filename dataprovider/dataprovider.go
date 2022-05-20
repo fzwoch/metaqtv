@@ -54,7 +54,7 @@ func (dp DataProvider) Qtv() []qtv.QtvExport {
 	return result
 }
 
-func (dp DataProvider) Qwdwd() []qwfwd.QwfwdExport {
+func (dp DataProvider) Qwfwd() []qwfwd.QwfwdExport {
 	result := make([]qwfwd.QwfwdExport, 0)
 
 	for _, server := range dp.scraper.Servers() {
