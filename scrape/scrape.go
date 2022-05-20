@@ -35,7 +35,7 @@ func (index ServerIndex) ActiveAddresses() []string {
 	activeAddresses := make([]string, 0)
 
 	for _, server := range index.Servers() {
-		if hasPlayers(server) {
+		if hasHumanPlayers(server) {
 			activeAddresses = append(activeAddresses, server.Address)
 		}
 	}
@@ -43,7 +43,7 @@ func (index ServerIndex) ActiveAddresses() []string {
 	return activeAddresses
 }
 
-func hasPlayers(server qserver.GenericServer) bool {
+func hasHumanPlayers(server qserver.GenericServer) bool {
 	for _, c := range server.Clients {
 		if !c.IsSpectator() && !c.IsBot() {
 			return true
