@@ -18,7 +18,7 @@ func getConfig() AppConfig {
 		serverUpdateInterval int
 	)
 
-	flag.IntVar(&httpPort, "port", 3000, "HTTP listen port")
+	flag.IntVar(&httpPort, "port", 80, "HTTP listen port")
 	flag.IntVar(&serverUpdateInterval, "interval", 10, "Server update interval in seconds")
 	flag.Parse()
 
