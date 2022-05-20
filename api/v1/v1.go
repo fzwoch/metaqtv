@@ -23,6 +23,13 @@ type GameState struct {
 	Players   []Player
 }
 
+type ServerStats struct {
+	ServerCount       int
+	ActiveServerCount int
+	PlayerCount       int
+	ObserverCount     int
+}
+
 func GameStateFromMdvsv(mvdsv mvdsv.MvdsvExport) GameState {
 	players := make([]Player, 0)
 
@@ -57,46 +64,42 @@ func ToGameStates(servers []mvdsv.MvdsvExport) []GameState {
 
 func ServersHandler(serverSource func() []mvdsv.MvdsvExport) http.HandlerFunc {
 	getOutput := func() any {
-		type serverStats struct {
-			ServerCount       int
-			ActiveServerCount int
-			PlayerCount       int
-			ObserverCount     int
-		}
-
 		servers := serverSource()
-
-		stats := serverStats{
-			ServerCount:       len(servers),
-			ActiveServerCount: 0,
-			PlayerCount:       0,
-			ObserverCount:     0,
-		}
-
-		for _, s := range servers {
-			if s.PlayerSlots.Used > 0 {
-				stats.ActiveServerCount++
-			}
-			stats.PlayerCount += s.PlayerSlots.Used
-			stats.ObserverCount += s.SpectatorSlots.Used
-		}
-
+		stats := toStats(servers)
 		gameStates := ToGameStates(servers)
 
 		type server struct{ GameStates []GameState }
 		type result struct {
 			Servers []server
-			serverStats
+			ServerStats
 		}
 
 		return result{
 			Servers: []server{
 				{GameStates: gameStates},
 			},
-			serverStats: stats,
+			ServerStats: stats,
 		}
 	}
 	return mhttp.CreateHandler(getOutput)
+}
+
+func toStats(servers []mvdsv.MvdsvExport) ServerStats {
+	stats := ServerStats{
+		ServerCount:       len(servers),
+		ActiveServerCount: 0,
+		PlayerCount:       0,
+		ObserverCount:     0,
+	}
+
+	for _, s := range servers {
+		if s.PlayerSlots.Used > 0 {
+			stats.ActiveServerCount++
+		}
+		stats.PlayerCount += s.PlayerSlots.Used
+		stats.ObserverCount += s.SpectatorSlots.Used
+	}
+	return stats
 }
 
 func New(baseUrl string, provider *dataprovider.DataProvider) mhttp.Api {
