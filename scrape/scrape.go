@@ -76,7 +76,7 @@ type Config struct {
 var DefaultConfig = Config{
 	MasterInterval:       600,
 	ServerInterval:       30,
-	ActiveServerInterval: 5,
+	ActiveServerInterval: 3,
 }
 
 func NewServerScraper(masters []string) ServerScraper {
