@@ -25,7 +25,7 @@ func (dp DataProvider) Mvdsv() any {
 	result := make([]mvdsv.MvdsvExport, 0)
 
 	for _, server := range dp.scraper.Servers() {
-		if server.Version.IsMvdsv() {
+		if server.Version.IsMvdsv() && len(server.Clients) > 0 {
 			mvdsvExport := convert.ToMvdsvExport(server)
 			mvdsvExport.Geo = dp.geoDb.GetByAddress(server.Address)
 			result = append(result, mvdsvExport)
