@@ -13,32 +13,31 @@ import (
 	"github.com/rs/cors"
 	"github.com/victorspringer/http-cache"
 	"github.com/victorspringer/http-cache/adapter/memory"
+	"metaqtv/dataprovider"
 )
 
-type HttpServer struct {
+type Api struct {
+	Provider  *dataprovider.DataProvider
+	BaseUrl   string
 	Endpoints Endpoints
 }
 
 type Endpoints map[string]http.HandlerFunc
 
-func NewServer() HttpServer {
-	return HttpServer{}
-}
-
-func (server HttpServer) Serve(port int) {
+func Serve(port int, endpoints Endpoints) {
 	// middleware
 	mux := http.NewServeMux() // CORS
 	cacheClient := getCacheClient()
-	for url, handler := range server.Endpoints {
+	for url, handler := range endpoints {
 		// http.Handle(url, cacheClient.Middleware(handler))
 		mux.Handle(url, cacheClient.Middleware(handler))
 	}
 
 	// serve
-	serverAddress := fmt.Sprintf(":%d", 443)
+	serverAddress := fmt.Sprintf(":%d", 3000)
 	handler := cors.Default().Handler(mux) // CORS
-	// err := http.ListenAndServe(serverAddress, handler)
-	err := http.ListenAndServeTLS(serverAddress, "server.crt", "server.key", handler)
+	err := http.ListenAndServe(serverAddress, handler)
+	//err := http.ListenAndServeTLS(serverAddress, "server.crt", "server.key", handler)
 
 	if err != nil {
 		fmt.Println(err)
@@ -59,9 +58,9 @@ func getCacheClient() *cache.Client {
 	return cacheClient
 }
 
-func HandlerBySource(source func() any) http.HandlerFunc {
+func CreateHandler(dataSource func() any) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		responseBody, _ := jsonMarshalNoEscapeHtml(source())
+		responseBody, _ := JsonMarshalNoEscapeHtml(dataSource())
 		JsonResponse(responseBody, w, r)
 	}
 }
@@ -78,7 +77,7 @@ func JsonResponse(responseBody []byte, response http.ResponseWriter, request *ht
 	response.Write(responseBody)
 }
 
-func jsonMarshalNoEscapeHtml(value any) ([]byte, error) {
+func JsonMarshalNoEscapeHtml(value any) ([]byte, error) {
 	var dst bytes.Buffer
 	enc := json.NewEncoder(&dst)
 	enc.SetEscapeHTML(false)
