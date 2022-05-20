@@ -61,28 +61,28 @@ func (index ServerIndex) Update(servers []qserver.GenericServer) {
 
 type ServerScraper struct {
 	Config          Config
-	masters         []string
 	index           ServerIndex
 	serverAddresses []string
 	shouldStop      bool
 }
 
 type Config struct {
+	MasterServers        []string
 	MasterInterval       int
 	ServerInterval       int
 	ActiveServerInterval int
 }
 
 var DefaultConfig = Config{
+	MasterServers:        make([]string, 0),
 	MasterInterval:       600,
 	ServerInterval:       30,
 	ActiveServerInterval: 3,
 }
 
-func NewServerScraper(masters []string) ServerScraper {
+func NewServerScraper() ServerScraper {
 	return ServerScraper{
 		Config:          DefaultConfig,
-		masters:         masters,
 		index:           make(ServerIndex, 0),
 		serverAddresses: make([]string, 0),
 		shouldStop:      false,
@@ -115,7 +115,7 @@ func (sp *ServerScraper) Start() {
 
 				if isTimeToUpdateFromMasters {
 					var err error
-					serverAddresses, err = masterstat.GetServerAddressesFromMany(sp.masters)
+					serverAddresses, err = masterstat.GetServerAddressesFromMany(sp.Config.MasterServers)
 
 					if err != nil {
 						log.Println("ERROR:", err)

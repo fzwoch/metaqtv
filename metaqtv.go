@@ -1,6 +1,8 @@
 package main
 
 import (
+	"encoding/json"
+	"flag"
 	"fmt"
 	"log"
 	"os"
@@ -16,16 +18,12 @@ import (
 func main() {
 	// config
 	conf := getConfig()
-	masters, err := getMasterServersFromJsonFile(conf.masterServersFile)
-
-	if err != nil {
-		log.Println("Unable to read master_servers.json")
-		os.Exit(1)
-	}
 
 	// data provider
-	scraper := scrape.NewServerScraper(masters)
+	scraper := scrape.NewServerScraper()
+	scraper.Config = conf.scrapeConfig
 	scraper.Start()
+
 	geoDatabase, _ := geodb.New()
 	dataProvider := dataprovider.New(&scraper, geoDatabase)
 
@@ -46,4 +44,57 @@ func main() {
 	}
 
 	mhttp.Serve(conf.httpPort, endpoints)
+}
+
+type AppConfig struct {
+	httpPort     int
+	scrapeConfig scrape.Config
+}
+
+func getConfig() AppConfig {
+	var (
+		httpPort             int
+		masterInterval       int
+		serverInterval       int
+		activeServerInterval int
+	)
+
+	flag.IntVar(&httpPort, "port", 80, "HTTP listen port")
+	flag.IntVar(&masterInterval, "master", scrape.DefaultConfig.MasterInterval, "Master server update interval in seconds")
+	flag.IntVar(&serverInterval, "server", scrape.DefaultConfig.ServerInterval, "Server update interval in seconds")
+	flag.IntVar(&activeServerInterval, "active", scrape.DefaultConfig.ActiveServerInterval, "Active server update interval in seconds")
+	flag.Parse()
+
+	masterServers, err := getMasterServersFromJsonFile("master_servers.json")
+
+	if err != nil {
+		log.Println("Unable to read master_servers.json")
+		os.Exit(1)
+	}
+
+	return AppConfig{
+		httpPort: httpPort,
+		scrapeConfig: scrape.Config{
+			MasterServers:        masterServers,
+			MasterInterval:       masterInterval,
+			ServerInterval:       serverInterval,
+			ActiveServerInterval: activeServerInterval,
+		},
+	}
+}
+
+func getMasterServersFromJsonFile(filePath string) ([]string, error) {
+	result := make([]string, 0)
+
+	jsonFile, err := os.ReadFile(filePath)
+	if err != nil {
+		return result, err
+	}
+
+	err = json.Unmarshal(jsonFile, &result)
+	if err != nil {
+		return result, err
+	}
+
+	return result, nil
 }
