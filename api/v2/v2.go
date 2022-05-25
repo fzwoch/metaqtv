@@ -1,12 +1,15 @@
 package v2
 
 import (
+	"errors"
 	"net/http"
+	"strings"
 
 	"github.com/vikpe/serverstat/qserver"
 	"github.com/vikpe/serverstat/qserver/mvdsv"
 	"github.com/vikpe/serverstat/qserver/qtv"
 	"github.com/vikpe/serverstat/qserver/qwfwd"
+	"golang.org/x/exp/slices"
 	"metaqtv/dataprovider"
 	"metaqtv/mhttp"
 )
@@ -51,6 +54,40 @@ func QtvToServerHandler(serverSource func() []qserver.GenericServer) http.Handle
 	return mhttp.CreateHandler(func() any { return getServerToQtvMap() })
 }
 
+func FindPlayerHandler(serverSource func() []mvdsv.MvdsvExport) http.HandlerFunc {
+	serverByPlayerName := func(playerName string) (mvdsv.MvdsvExport, error) {
+		for _, server := range serverSource() {
+			readableNames := make([]string, 0)
+
+			for _, player := range server.Players {
+				readableNames = append(readableNames, strings.ToLower(player.Name.ToPlainString()))
+			}
+
+			if slices.Contains(readableNames, playerName) {
+				return server, nil
+			}
+		}
+
+		return mvdsv.MvdsvExport{}, errors.New("player not found")
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		playerName := r.URL.Query().Get("q")
+		server, err := serverByPlayerName(playerName)
+
+		var result any
+
+		if err == nil {
+			result = server
+		} else {
+			result = err.Error()
+		}
+
+		responseBody, _ := mhttp.JsonMarshalNoEscapeHtml(result)
+		mhttp.JsonResponse(responseBody, w, r)
+	}
+}
+
 func New(baseUrl string, provider *dataprovider.DataProvider) mhttp.Api {
 	return mhttp.Api{
 		Provider: provider,
@@ -61,6 +98,7 @@ func New(baseUrl string, provider *dataprovider.DataProvider) mhttp.Api {
 			"qwfwd":         QwfwdHandler(provider.Qwfwd),
 			"server_to_qtv": ServerToQtvHandler(provider.Generic),
 			"qtv_to_server": QtvToServerHandler(provider.Generic),
+			"find_player":   FindPlayerHandler(provider.Mvdsv),
 		},
 	}
 }
