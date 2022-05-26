@@ -34,11 +34,11 @@ metaqtv [-master INTERVAL] [-server INTERVAL] [-active INTERVAL] [-port PORT]
 | `?has_spectator=xantom` | Servers where `xantom` is connected as spectator           |
 |                         |                                                            |
 | `?mode=ffa`             | Servers where `Mode` is `ffa`                              |
-| `?mode=2on2,4on4`       | Servers where `Mode` is `2on2` or `4on4`                   |
+| `?mode=2on2&mode=4on4`  | Servers where `Mode` is `2on2` or `4on4`                   |
 | `?status=Started`       | Servers where `Status` is `Started`                        |
 | `?settings.map=dm3`     | Servers where `map` is `dm3`                               |
 | `?player_count=gte:3`   | Servers with at least 3 players                            |
-| `?sort_by=address,desc` | Sort by server `address`                                   |
+| `?sort_by=address`      | Sort by server `address`                                   |
 | `?sort_order=desc`      | Sort in `descending` order                                 |
 
 ## Config
