@@ -33,7 +33,8 @@ metaqtv [-master INTERVAL] [-server INTERVAL] [-active INTERVAL] [-port PORT]
 | `?player=xantom`     | Servers where `xantom` is connected as player              |
 | `?spectator=xantom`  | Servers where `xantom` is connected as spectator           |
 |                      |                                                            |
-| `?mode=2on2`         | Servers where `Mode` is `2on2`                             |
+| `?mode=ffa`          | Servers where `Mode` is `ffa`                              |
+| `?mode=2on2,4on4`    | Servers where `Mode` is `2on2` or `4on4`                   |
 | `?status=Started`    | Servers where `Status` is `Started`                        |
 | `?settings.map=dm3`  | Servers where `map` is `dm3`                               |
 | `?playerCount=gte:3` | Servers with at least 3 players                            |
