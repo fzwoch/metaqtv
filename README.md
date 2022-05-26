@@ -23,7 +23,19 @@ metaqtv [-master INTERVAL] [-server INTERVAL] [-active INTERVAL] [-port PORT]
 | `/v2/qwfwd`         | Qwfwd servers (proxies)                |  
 | `/v2/qtv`           | QTV servers                            |  
 | `/v2/qtv_to_server` | Map of QTV streams to server addresses |  
-| `/v2/server_to_qtv` | Map of server addresses to QTV streams |  
+| `/v2/server_to_qtv` | Map of server addresses to QTV streams |
+
+### Query params
+
+| URL               | description                                              |
+|-------------------|----------------------------------------------------------|
+| `?client=foo`     | Servers where `foo` is connected as player or spectator  |
+| `?player=foo`     | Servers where `foo` is connected as player               |
+| `?spectator=foo`  | Servers where `foo` is connected as spectator            |
+|                   |                                                          |
+| `?mode=foo`       | Servers where `Mode` is `foo`                            |
+| `?status=Started` | Servers where `Status` is `Started`                      |
+| `?map=dm3`        | Servers where `map` is `dm3`                             |
 
 ## Config
 
