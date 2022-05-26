@@ -27,15 +27,16 @@ metaqtv [-master INTERVAL] [-server INTERVAL] [-active INTERVAL] [-port PORT]
 
 ### Query params
 
-| URL               | description                                              |
-|-------------------|----------------------------------------------------------|
-| `?client=foo`     | Servers where `foo` is connected as player or spectator  |
-| `?player=foo`     | Servers where `foo` is connected as player               |
-| `?spectator=foo`  | Servers where `foo` is connected as spectator            |
-|                   |                                                          |
-| `?mode=foo`       | Servers where `Mode` is `foo`                            |
-| `?status=Started` | Servers where `Status` is `Started`                      |
-| `?map=dm3`        | Servers where `map` is `dm3`                             |
+| URL                    | description                                             |
+|------------------------|---------------------------------------------------------|
+| `?client=foo`          | Servers where `foo` is connected as player or spectator |
+| `?player=foo`          | Servers where `foo` is connected as player              |
+| `?spectator=foo`       | Servers where `foo` is connected as spectator           |
+|                        |                                                         |
+| `?mode=foo`            | Servers where `Mode` is `foo`                           |
+| `?status=Started`      | Servers where `Status` is `Started`                     |
+| `?settings.map=dm3`    | Servers where `map` is `dm3`                            |
+| `?playerCount=gte:3`   | Servers with at least 3 players                         |
 
 ## Config
 
