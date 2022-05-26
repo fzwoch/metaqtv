@@ -27,19 +27,19 @@ metaqtv [-master INTERVAL] [-server INTERVAL] [-active INTERVAL] [-port PORT]
 
 ### Query params
 
-| URL                  | description                                                |
-|----------------------|------------------------------------------------------------|
-| `?client=xantom`     | Servers where `xantom` is connected as player or spectator |
-| `?player=xantom`     | Servers where `xantom` is connected as player              |
-| `?spectator=xantom`  | Servers where `xantom` is connected as spectator           |
-|                      |                                                            |
-| `?mode=ffa`          | Servers where `Mode` is `ffa`                              |
-| `?mode=2on2,4on4`    | Servers where `Mode` is `2on2` or `4on4`                   |
-| `?status=Started`    | Servers where `Status` is `Started`                        |
-| `?settings.map=dm3`  | Servers where `map` is `dm3`                               |
-| `?playerCount=gte:3` | Servers with at least 3 players                            |
-| `?sortBy=address`    | Sort by server address                                     |
-| `?sortOrder=desc`    | Sort in descending order                                   |
+| URL                     | description                                                |
+|-------------------------|------------------------------------------------------------|
+| `?has_client=xantom`    | Servers where `xantom` is connected as player or spectator |
+| `?has_player=xantom`    | Servers where `xantom` is connected as player              |
+| `?has_spectator=xantom` | Servers where `xantom` is connected as spectator           |
+|                         |                                                            |
+| `?mode=ffa`             | Servers where `Mode` is `ffa`                              |
+| `?mode=2on2,4on4`       | Servers where `Mode` is `2on2` or `4on4`                   |
+| `?status=Started`       | Servers where `Status` is `Started`                        |
+| `?settings.map=dm3`     | Servers where `map` is `dm3`                               |
+| `?player_count=gte:3`   | Servers with at least 3 players                            |
+| `?sort_by=address,desc` | Sort by server `address`                                   |
+| `?sort_order=desc`      | Sort in `descending` order                                 |
 
 ## Config
 
