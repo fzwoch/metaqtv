@@ -34,7 +34,7 @@ func main() {
 
 	for _, api := range apiVersions {
 		for url, handler := range api.Endpoints {
-			fullUrl := fmt.Sprintf("/%s/%s", api.BaseUrl, url)
+			fullUrl := fmt.Sprintf("/api/%s/%s", api.BaseUrl, url)
 			endpoints[fullUrl] = handler
 		}
 	}
