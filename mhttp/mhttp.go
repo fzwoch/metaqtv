@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/rs/cors"
 	"github.com/victorspringer/http-cache"
 	"github.com/victorspringer/http-cache/adapter/memory"
 	"metaqtv/dataprovider"
@@ -26,24 +25,14 @@ type Endpoints map[string]http.HandlerFunc
 
 func Serve(port int, endpoints Endpoints) {
 	// middleware
-	mux := http.NewServeMux() // CORS
 	cacheClient := getCacheClient()
 	for url, handler := range endpoints {
-		// http.Handle(url, cacheClient.Middleware(handler))
-		mux.Handle(url, cacheClient.Middleware(handler))
+		http.Handle(url, cacheClient.Middleware(handler))
 	}
 
 	// serve
 	serverAddress := fmt.Sprintf(":%d", port)
-	handler := cors.Default().Handler(mux) // CORS
-
-	var err error
-
-	if 443 == port {
-		err = http.ListenAndServeTLS(serverAddress, "server.crt", "server.key", handler)
-	} else {
-		err = http.ListenAndServe(serverAddress, handler)
-	}
+	err := http.ListenAndServe(serverAddress, nil)
 
 	if err != nil {
 		fmt.Println(err)
