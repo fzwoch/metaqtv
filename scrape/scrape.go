@@ -77,7 +77,7 @@ var DefaultConfig = Config{
 	MasterServers:        make([]string, 0),
 	MasterInterval:       600,
 	ServerInterval:       30,
-	ActiveServerInterval: 3,
+	ActiveServerInterval: 15,
 }
 
 func NewServerScraper() ServerScraper {
