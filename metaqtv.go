@@ -8,9 +8,7 @@ import (
 	"os"
 
 	apiVersion1 "metaqtv/api/v1"
-	apiVersion2 "metaqtv/api/v2"
 	"metaqtv/dataprovider"
-	"metaqtv/geodb"
 	"metaqtv/mhttp"
 	"metaqtv/scrape"
 )
@@ -24,13 +22,11 @@ func main() {
 	scraper.Config = conf.scrapeConfig
 	scraper.Start()
 
-	geoDatabase, _ := geodb.New()
-	dataProvider := dataprovider.New(&scraper, geoDatabase)
+	dataProvider := dataprovider.New(&scraper)
 
 	// api versions
 	apiVersions := []mhttp.Api{
 		apiVersion1.New("v1", &dataProvider),
-		apiVersion2.New("v2", &dataProvider),
 	}
 
 	// merge endpoints
